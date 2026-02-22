@@ -1,0 +1,49 @@
+React Native SDK
+Introduction
+The HyperKYC React Native SDK enables you to integrate workflows inside your React Native app, powered by the HyperKYC Android & iOS SDKs as its foundation.
+
+Key Features
+Provides cross-platform support for both Android and iOS platforms
+Delivers optimal performance powered by native HyperKYC Android & iOS SDKs
+Enables core functionalities like Camera and Geo Location without internet connectivity
+Features modular architecture to exclude unused components and reduce app size
+Allows configurable UI text for multiple languages
+Enables seamless verification continuation across different devices
+Supports React Native's new architecture without manual linking required
+Implementation Overview
+Add the SDK to your React Native project as an npm/yarn dependency
+Guide users through verification steps using native UI components
+Receive structured results containing status information and extracted data
+Process verification results to determine subsequent steps in user workflows
+Prerequisites
+Development Requirements:
+
+React Native Version: 0.71+ (recommended)
+Android: minSdkVersion 21 (Android 5.0) or higher
+iOS: iOS 12+ with Xcode 15.1+
+Development Environment: React Native CLI or Expo (with custom development client)
+Node.js and npm/yarn package manager
+Required Permissions:
+
+The SDK requires:
+
+Camera : for document/face capture
+Microphone (optional): for video workflows
+Location (optional) : if useLocation is enabled
+NFC (optional) : for NFC-based verification workflows
+React Native SDK permissions are handled through platform-specific configuration files. For Android, permissions are configured in the AndroidManifest.xml file, while iOS permissions are handled through Info.plist customization. You add only the permissions your app needs to the respective configuration files, and omit those you don't require. For a comprehensive list of all required permissions, optional permissions, and detailed configuration examples, see our SDK Permissions Guide.
+
+HyperVerge Account Setup:
+
+Active HyperVerge account with dashboard access
+Set up and configure a specific workflow in your HyperVerge One account dashboard
+Obtain valid appId and appKey credentials from the HyperVerge One dashboard
+Ensure you provide the correct WorkflowID to integrate any workflow provided by HyperVerge
+Related Documentation
+Page	Description
+Quick Start Guide	Get started quickly with React Native SDK using this step-by-step quick start guide
+Integration Guide	Step by step guide for integrating the React Native SDK into your React Native application with code examples
+Changelogs	Track version updates, new features, bug fixes, and breaking changes in the React Native SDK
+SDK Permissions Guide	Learn about required permissions, optional permissions, and how to configure platform-specific files for your React Native app
+Tags:sdk-documentationreact-native-sdk
+Last updated on Nov 13, 2025

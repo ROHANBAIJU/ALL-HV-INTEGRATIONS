@@ -1,0 +1,193 @@
+React Native SDK - Integration Guide
+This guide provides step-by-step instructions for integrating the HyperKYC React Native SDK into your project.
+
+Additional Resource
+Complete Sample Project: A ready to use example project with all the code you need to get started with the React Native SDK quickly.
+Prerequisites
+Before starting the integration, please ensure you meet all the requirements listed in the Prerequisites for React Native SDK Integration section.
+
+Integration Steps
+The following steps will guide you through implementing the HyperKYC React Native SDK in your application:
+
+Step 1: Add the SDK to your Project
+Install using npm or yarn
+Install the React Native wrapper:
+Bash
+# Install the RN wrapper
+npm install @hyperverge/hyperkyc-react-native-sdk
+# or
+yarn add @hyperverge/hyperkyc-react-native
+
+Platform-Specific Installation
+After installing the package, platform-specific setup is required:
+
+Android:
+
+For projects using React Native 0.60+ with auto-linking enabled, no additional installation steps are required. The native dependencies are automatically linked.
+For older React Native versions, follow the wrapper's README for manual linking configuration.
+iOS:
+
+Install native dependencies by running pod install in the iOS directory:
+cd ios && pod install && cd ..
+
+For detailed iOS configuration (including static framework setup for version 0.6.0+), see the iOS Configuration section in Step 2.
+Step 2: Platform Setup
+Android Configuration
+Ensure minSdkVersion 21 in android/app/build.gradle:
+Gradle
+android {
+    defaultConfig {
+        minSdkVersion 21
+        // ... other configurations
+    }
+}
+
+
+Add only required permissions in AndroidManifest.xml:
+AndroidManifest.xml
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.CAMERA" />
+
+<!-- Optional -->
+<!-- <uses-permission android:name="android.permission.RECORD_AUDIO" /> -->
+<!-- <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> -->
+
+
+Remove unused permissions if needed:
+AndroidManifest.xml
+<uses-permission android:name="android.permission.RECORD_AUDIO"
+  tools:node="remove" />
+
+
+iOS Configuration
+⚠️ Integration from Version 0.6.0 on iOS
+Add required permission descriptions in Info.plist:
+Info.plist
+<key>NSCameraUsageDescription</key>
+<string>Camera required for KYC</string>
+<key>NSMicrophoneUsageDescription</key>
+<string>Microphone required for video KYC</string>
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Location required for KYC workflow</string>
+
+Step 3 (Optional): Prefetch Resources and Configs
+To improve performance, prefetch resources and configs configuration before launch:
+
+TypeScript
+Hyperkyc.prefetch('<APP_ID>', '<WORKFLOW_ID>');
+
+appId: Your assigned App ID
+workflowId: Workflow configured in the HyperVerge dashboard
+Step 4: Optional Configurations
+Create and customize the HyperKYC configuration to match your specific requirements and workflow needs.
+
+Step 4.1: Create the HyperKYC Config
+HyperKYC React Native SDK supports two authentication methods for configuration: appID and appKey for straightforward integration, or access tokens for token-based authentication. Both approaches are demonstrated below, with access token generation steps available on the Authentication page.
+
+(Recommended Method) Using Access Tokens
+(Legacy Method) Using Credentials
+The following integration code creates a configuration instance based on the accessToken.
+
+Typescript
+var configDictionary = {};
+configDictionary["accessToken"] = accessToken
+
+Step 4.2: Customize the Config
+List of workflow configuration options in the HyperVerge React Native SDK:
+Step 5: Launch the workflow and Implement a Results Handler
+Create a results handler to process the outcome of the workflow. The example below shows how to register a launcher to handle the results from the SDK:
+
+TypeScript
+
+//  Launch HyperKyc using launch() function
+Hyperkyc.launch(configDictionary, function(result){
+    console.log(result)
+    //  Handle result (refer this for more info)
+    switch(result.response.status) {
+        case "auto_approved":
+        case "auto_declined":
+        case "needs_review":
+            // Handle Success Workflow
+            break;
+        case "user_cancelled":
+            // Handle User Cancelled
+            break;
+        case "error":
+            // Handle Failure Scenario
+            break;
+    }
+}) 
+
+Step 6 (Optional): Implement Real-Time Event Notifications
+The real-time event notification system provides immediate insights into user journeys through event-based architecture. These events are triggered when users complete major milestones in their journey, allowing you to track progress and implement trigger-based interventions.
+
+To implement real-time event notifications in your React Native app, refer to the React Native implementation guide.
+
+Step 7: Launch the SDK
+Call the launch method to initiate the SDK workflow:
+
+TypeScript
+ // Launch HyperKYC
+      Hyperkyc.launch(config, (response: any) => {
+        console.log('HyperKYC Response:', response);
+     });
+   
+
+transactionId must be unique per session.
+Handles both success (with response) and failure (with error codes).
+In production, prefer token-based authentication instead of embedding appKey.
+Important
+Avoid repeated SDK initialization. Ensure your app prevents multiple button presses or asynchronous triggers to avoid multiple invocations of the SDK.
+
+You are now ready to build and run your React Native app!
+Your React Native application is now successfully integrated with the HyperKYC SDK. You can build and test your application to ensure everything works as expected.
+
+SDK Responses
+For detailed information about React Native SDK responses, see the SDK Response Documentation.
+
+Error Response Details
+The React Native SDK normalizes internal errors into standardized error codes.
+
+Code	Name	Android	iOS	Description
+101	SDK_CONFIG_ERROR	✓	✓	Config errors (empty/invalid appId, workflowId, transactionId, accessToken, defaultLangCode)
+102	SDK_INPUT_ERROR	✓	✓	Invalid/missing inputs, file inaccessible
+103	USER_CANCELLED_ERROR	✓	✓	User closed/cancelled workflow
+104	WORKFLOW_ERROR	✓	✓	Workflow execution errors (doc, face, API, encryption)
+105	SDK_VERSION_ERROR	✓	✓	SDK version not supported by workflow
+106	PERMISSIONS_ERROR	✓	✓	Required permission not granted (camera, mic, location)
+107	HARDWARE_ERROR	✓	✓	Device hardware/camera failure
+108	GPS_ACCESS_DENIED	✓	✓	Location permission denied
+109	QR_SCANNER_ERROR	✓	(reserved)	QR scanner submodule missing (Android)
+110	SSL_CONNECT_ERROR	✓	✓	SSL handshake/pinning failure
+111	NETWORK_ERROR	✓	✓	Connectivity/server errors (timeouts, 4xx/5xx, token expired)
+112	SIGNATURE_FAILED_ERROR	✓	✓	Response signature mismatch
+113	FACE_NOT_DETECTED	✓	✓	Face not detected or blurry
+114	DEVICE_ROOTED_ERROR	✓	–	Android only (rooted/jailbroken device check)
+115	SECURITY_ERROR	(reserved)	✓	iOS only — screenshot or screen recording detected
+117	ACTIVITY_DESTROYED_ERROR	✓	–	Android only — Activity destroyed / low memory
+118	LOW_STORAGE_ERROR	✓	–	Android only — storage < 1 MB
+119	NFC_INVALID_ERROR	✓	–	Android only — NFC SDK not integrated
+120	NFC_UNAVAILABLE_ERROR	✓	✓	NFC not available on device
+121	NFC_AUTHENTICATION_ERROR	✓	✓	NFC chip authentication failed
+122	NFC_CONNECTION_ERROR	✓	✓	NFC card disconnected mid-scan
+123	WEB_FORM_ERROR / FORM_V2_ERROR	✓	✓	Web form integration/config errors
+124	BROWSER_NOT_SUPPORTED	✓	✓	No supported browser available
+125	NFC_INCOMPLETE_SCAN_ERROR	✓	✓	NFC scan incomplete (missing DGs)
+126	PRIVACY_CONSENT_DENIED_ERROR	✓	✓	User denied privacy consent
+127	WEBCORE_NOT_SUPPORTED	✓	–	Android only — missing Play Services / WebView
+128	SDK_EXIT_ERROR	✓	✓	SDK closed unexpectedly / backgrounded
+140	SDK_INTERNAL_ERROR	✓	–	Android only — unexpected state
+141	PERMISSION_REVOKED_ERROR / DATE_FORMAT_ERROR (iOS)	✓	✓	Android: permission revoked mid-flow; iOS: invalid date format
+151	CHECK_SESSION_ERROR	✓	✓	Session validation failed
+Tags:sdk-integrationreact-native-sdk
+Last updated on Jan 7, 2026
+Previous
+React Native SDK Quick Start Guide
+Next
+React Native SDK Changelog
+Was this helpful?
+😭
+😞
+😐
+🙂
+🤩

@@ -1,0 +1,829 @@
+SDK Integration GuidesReact Native SDKReact Native SDK Changelog
+React Native SDK Changelog
+The following document lists the React Native SDK changelogs:
+
+2.5.0 [12 Feb 2026]
+Upgrade native Android HyperKYC to 2.5.0
+Added support to use bundled assets required for webcore mode instead of fetching from network
+Added support to use bundled sdk.webcore.min.js in the sdk
+Map the Face Detector not available error to error code 170 instead of the default error code 104
+Bump up the local bundled sdk.webcore.min.js to version 10.4.0
+uses HyperSnapSDK version 7.3.2
+Fixed issue where the SDK allowed capture of faces clipped from the bottom
+Fixed issue with not showing loader on face capture page intermittently after capture button is clicked
+Added support for colour customisation for retake message card using retakeMessageCardBackgroundColor key as part of ui config
+Upgrade native iOS HyperKYC to 1.0.0
+Enhancements: (Breaking Version)
+Removed support for native forms, enable webCore or webForms for dynamic form module
+Remove DocDetect module, document auto capture is supported via Core & Crashguard subspecs
+Maintenance:
+Use HyperSnapSDK 6.0.1
+2.4.0 [23 Jan 2026]
+Upgrade native Android HyperKYC to 2.4.0
+Uses HyperSnapSDK version 7.3.0
+Add support for backend video recording in face module when enableBackendVideoRecording is set as true in appId remote config
+Remove support for videoRecordingV2
+Add new injection detection algorithms
+Add additional flags in the liveness API to detect suspicious devices
+Upgrade native iOS HyperKYC to 0.50.4
+2.3.4 [21 Dec 2025]
+Upgrade native Android HyperKYC to 2.3.4
+Uses HyperSnapSDK version 7.2.3
+Fix NPE caused in HVDocConfig.getModuleId() due to activity recreation
+Fix NPE caused in HVRetakeActivity.callingActivity
+2.3.3 [11 Dec 2025]
+Uses HyperSnapSDK version 7.2.2
+Fix proguard rules to support repackaging of the SDK to preserve package name
+2.3.2 [10th Dec 2025]
+Upgrade native Android HyperKYC to 2.3.2
+Fix base64 workflow inputs getting parsed incorrectly
+2.3.1 [4 Dec 2025]
+Upgrade native Android HyperKYC to 2.3.1
+uses HyperSnapSDK version 7.2.1
+Fix location not getting extracted if approximate location permission is granted instead of precise location permission
+2.3.0 [28th Nov 2025]
+Upgrade native Android HyperKYC to 2.3.0
+uses HyperSnapSDK version 7.2.0
+Added fix for face capture state when setUseLocation is enabled
+Upgrade native iOS HyperKYC to 0.50.3 Bug Fixes:
+Added fix for overlapping status bar and top bar in webViews
+2.2.4 [12 Nov 2025]
+Upgrade native Android HyperKYC to 2.2.3
+fix HV Error 0 FT Error due to typecasting to float in certain devices
+fix Fragment not attached related crashes in nfcReaderFragment
+fix NullPointerException: config must not be null crash
+uses HyperSnapSDK version 7.1.3
+fix retake page not showing up on enabling livenessOnMaxFaceNotPresent
+fix faceDetectionState circle stays inactive (red) after retake when zoomByDefault is on and no face is detected
+adds analytics logging for SSL Pinning failures for ocr, liveness, and face match
+bump HVCamera to 3.4.9
+fix SecurityException Crash happening while closing camera2
+2.2.3 [ 17 Oct 2025 ]
+Upgrade native Android HyperKYC to 2.2.2
+Use HyperSnapSDK version 7.1.2
+Fix unresponsive close button on face capture
+Upgrade native iOS HyperKYC to 0.50.2
+Use HVCrashGuard version 1.0.1
+Updated to .fatal crash reporting
+Added fallbacks for system level information
+Use HyperSnapSDK version 5.0.3
+Fix crash after capture when videoRecording is enabled
+Fix looping issues happening when videoRecording is enabled
+2.2.2 [ 14 Oct 2025 ]
+Upgrade native Android HyperKYC to 2.2.1
+Fix Int processing error happening in few devices
+2.2.1 [ 7 Oct 2025 ]
+Upgrade native Android HyperKYC to 2.2.0
+Add support for Android 16
+Uses HyperSnapSDK version 7.1.0
+Add Android 16 Support
+Bump HVCrashGuard to 3.0.0
+Upgrade to 8.x series of Sentry using Scopes Architecture
+Update default webCore version to 9.15.10
+Upgrade native iOS HyperKYC to 0.50.1
+Update default webCore version to 9.15.10
+Use HyperSnapSDK 5.0.2
+Fix subText UI issues in doc capture screens
+2.1.0 [ 7 Oct 2025 ]
+Upgrade native Android HyperKYC to 2.1.0
+Add support for full screen webapp display in webView module in webcore mode, configurable via hideTopBar key under webView module properties in workflow config
+Add support for vkyc in webcore mode
+Remove validate sdk version check
+Update default webCore version to 9.15.7
+Upgrade native iOS HyperKYC to 0.50.0
+Updated deployment target to iOS 13.0
+Add support for vkyc flow in webCore mode
+Add support for full screen webapp display in webView module in webcore mode using hideTopBar
+Remove validate SDK version check in webCore mode
+Update default webCore version to 9.15.7
+Fix top view margin on webViews
+Remove setting customUserAgent on webViews
+2.0.1 [5 Sep 2025]
+Upgrade native Android HyperKYC to 2.0.2
+Fix references to removeFirst() & removeLast() in Kotlin for Android 15
+2.0.0 [27 Aug 2025]
+Upgrade native Android HyperKYC to 2.0.1 Fix close button visibility dependency on previousStep in webView module
+Uses HyperSnapSDK version 7.0.1
+Fix client logo alignment issues
+Bump HVFaceDetection to 4.0.0
+Add support for 16 KB Page Size
+Bump HVDocDetect to 2.0.0
+Add support for 16 KB Page Size
+1.1.0 [19 Aug 2025]
+Upgrade native iOS HyperKYC to 0.49.0
+Enhancements:
+Add support to show retry screen when remote config fetch fails in slow network scenarios
+Add support to save files to a private directory within the parent app
+Update default webCore version to 9.15.1
+Maintenance:
+Use HyperSnapSDK 5.0.0
+Enhancements
+Improvements to face detection algorithm for face capture
+Add support to save files within a private folder in the app's directory
+Bug Fixes
+Fix force unwrap crash in document picker screen
+Upgrade native iOS HyperKYC to 1.1.0
+Add support to show retry screen when remote config fetch fails in slow network scenarios
+Update default webCore version to 9.15.1
+Fix HyperKYCConfig cannot be extracted crash
+1.0.0 [30 Jul 2025]
+Add edge to edge support for Android 15
+Use HyperSnapSDK version 6.0.1
+Fix camera preview frame not rendering circular in native videoStatementV2
+Fix frame diff calculation to handle extremely bright and dark solid background edge cases
+Fix Null Pointer Exception issue with mPresenter#getFaceDetectionState
+0.48.1 [ 23 Jul 2025 ]
+Upgrade native iOS HyperKYC to 0.48.1
+Use HyperSnapSDK 4.39.1
+Fix app crash on iOS 26 devices when liveness mode is set to .none
+Upgrade native android HyperKYC to 0.47.4
+Use HyperSnapSDK version 5.6.4
+Fix Null Pointer Exception issue with mPresenter#getFaceDetectionState
+Fix Null Pointer Exception issue with PermissionManager#getStatus
+0.48.0 [ 11 Jul 2025 ]
+Upgrade native iOS HyperKYC to 0.48.0
+Use HyperSnapSDK 4.39.0
+Added fallback face detector support for iOS 26 via remote config
+0.47.0 [ 3 Jul 2025 ]
+Upgrade native android HyperKYC to 0.47.2
+Add support to exclude crashguardsdk
+Fix back press race condition issue
+Update HyperSnapSDK version 5.6.1
+Add support to make liveness call on face not found max attempts.
+Bump HVCamera version 3.4.7
+Fix NPEs and OOMs on the Camera V2 Engine.
+Upgrade native iOS HyperKYC to 0.46.0
+Deprecated videoStatement v1 module, use videoStatementV2
+Deprecated list & chip components in native form module, use webForms
+Removed redundant files for size optimisations
+Added support for crash reporting on HV SDKs (HyperKYC/CrashGuard)
+Use HyperSnapSDK 4.38.0
+Added optimisations changes for .lottie files
+0.46.1 [ 22 May 2025 ]
+Support to add event listeners via HyperKyc#addEventListener
+Support to remove all event listeners via HyperKyc#removeAllEventListeners
+0.46.0 [ 22 May 2025 ]
+Upgrade native android HyperKYC to 0.46.1
+Fix confirmation dialog triggered by hyperlink clicks in webview.
+Fix stuck on loader issue when camera permission is explicitly revoked
+Uses HyperSnapSDK version 5.5.3
+Fix camera permission getting explicitly revoked scenarios
+Fix qr scanner camera completion
+Upgrade native iOS HyperKYC to 0.46.0
+Enhancements:
+Add support for real-time events using HyperKYC.addEventListener and HyperKYC.removeAllEventListeners
+Update default webCore version to 9.7.0
+Use HyperSnapSDK 4.36.1
+Fix multiple callbacks fired from QR capture module
+0.45.1 [ 7 May 2025 ]
+Upgrade native android HyperKYC to 0.45.2
+add analytics logs for SDK-background and SDK-foreground events in WebCore mode
+upload debug logs in error and user_cancelled statuses in WebCore mode
+update default webCore version to 9.4.1
+uses HyperSnapSDK version 5.5.2
+add additional logs to selfie capture module
+fix face not getting detected on resume scenarios
+Upgrade native iOS HyperKYC to 0.45.1
+Add analytics logs for SDK-background and SDK-foreground events in WebCore mode
+Update default webCore version to 9.4.1
+Fix NFC related crashes when scanning is in progress
+Use HyperSnapSDK 4.36.0
+0.45.0 [ 5 May 2025 ]
+Upgrade native android HyperKYC to 0.45.0
+Add support for enabling a close button on all SDK screens via workflow config's properties.showCloseIcon
+Update default webCore version to 9.4.0
+Use HyperSnapSDK version 5.5.0
+Add support for enabling SDK close button via <config>.setShowCloseIcon(true)
+Add support to display SDK version along with branding, configured via appId based remote configs
+Add support for retry dialog on network errors for OCR and Liveness API calls
+Upgrade native iOS HyperKYC to 0.45.0
+Add support for showCloseIcon to display exit functionality via webCore
+Update default webcore version to 9.4.0
+Use HyperSnapSDK 4.36.0
+Add support for enabling SDK close button via <config>.setShowCloseIcon(true)
+0.44.0 [ 5 May 2025 ]
+Upgrade native android HyperKYC to 0.44.0
+Add support for file downloads in webViews
+Use HyperSnapSDK version 5.3.0
+Upgrade native iOS HyperKYC to 0.44.0
+Add support for file download in webViews
+Use HyperSnapSDK 4.35.0
+0.43.0 [ 5 May 2025 ]
+Upgrade native android HyperKYC to 0.43.0
+Add support to prevent parallel sessions using preventParallelSessions configuration in WebCore mode
+Use HyperSnapSDK version 5.3.0
+Add support to prevent parallel sessions
+Upgrade native iOS HyperKYC to 0.43.0
+Add support for parallel sessions in doc & face modules
+Update accessToken parsing in HyperKYCConfig
+Update default webcore version to 9.3.0
+Use HyperSnapSDK 4.35.0
+Add support for parallel session for doc and face
+0.42.1 [ 22 Apr 2025 ]
+Upgrade native android HyperKYC to 0.42.0
+Add support for exitOnCancel in webview modules to fail with user_cancelled when enabled.
+Update default webcore version to 9.2.2
+Use HyperSnapSDK version 5.2.0
+Add fallback support to HVFaceDetector when ML Kit is unavailable
+Enhance selfie video recording feature — can now be toggled via appId-based remote configuration
+Resolve issues related to broken user flow when face module permissions dialog is dismissed
+Upgrade native iOS HyperKYC to 0.42.1
+Add support for exitOnCancel in webview modules to fail with user_cancelled when enabled.
+Update default webcore version to 9.2.2
+Add support for assistiveCapture property in document module in WebCore mode
+Use HyperSnapSDK version 4.34.0
+Add support for assistiveCapture property in document module in WebCore mode
+0.41.0 [ 4 Apr 2025 ]
+Upgrade native android HyperKYC to 0.41.0
+Add support for assistiveCapture property in document module in WebCore mode
+Add security enhancements for doc module in WebCore mode
+Add support to enable/disable consent screen in selfie capture flow using enableBipaCompliance property in WebCore mode [disabled by default]
+Update default webcore version to 9.2.1
+Use HyperSnapSDK version 5.1.0
+Add support for assistiveCapture in document capture flow using HVDocConfig#setShouldPerformAssistiveCapture [disabled by default]
+Add support to enable/disable consent screen in selfie capture flow using HVFaceConfig#setShowConsent [disabled by default]
+Add security enhancements for doc module in WebCore mode
+Add support to enable/disable image injection checks in selfie capture flow via appId based remote configs
+Add Selfie Flow Ended analytics event to track selfie flow completion
+Add support to disable multiple face quality checks in selfie capture flow
+Upgrade native iOS HyperKYC to 0.41.0
+Add security enhancements for doc module in WebCore mode
+Add support to enable/disable consent screen in selfie capture flow using enableBipaCompliance property in WebCore mode [disabled by default]
+Optimise prefetch functionality to reduce initial load time
+Update default webcore version to 9.2.1
+Use HyperSnapSDK version 4.33.0
+Add support for prefetchConfigs method
+Add support to enable/disable consent screen in selfie capture flow using HVFaceConfig#setShowConsent [disabled by default]
+Add security enhancements for doc module in WebCore mode
+0.40.1 [11 Mar 2025]
+Upgrade native android HyperKYC to 0.40.1
+Enhance webCore load time with prefetch
+Update default webcore version to 9.1.0
+Use HyperSnapSDK version 5.0.2
+0.40.0 [5 Mar 2025]
+Upgrade native android HyperKYC to 0.40.0
+Add support for VideoStatementV2 module in WebCore mode
+Improve low-memory handling logic in WebCore mode
+Add support for sdk.installedApps predefined variable in WebCore mode
+Update default webcore version to 8.14.2
+Use HyperSnapSDK version 5.0.2
+Fix Null Pointer Exception issues in the completion handler
+Replace Kotlin.Triple with a custom HVStateData class
+Fix Null Pointer Exception issues (primary crashes) with HyperCameraManager#isCameraReleased
+Fix Null Pointer Exception issues (secondary crashes) with ErrorMonitoringService#sendErrorMessage
+Upgrade native iOS HyperKYC to 0.40.0
+Prevent multiple launches
+Add support for VideoStatementV2 module in WebCore mode
+Add support for sdk.installedApps predefined variable in WebCore mode
+Update default webcore version to 8.14.2
+0.39.0 [19 Feb 2025]
+Upgrade native android HyperKYC to 0.39.0
+Improve security measures for the face module
+Enhance device security features
+Enhancements to NFC skip button
+Close with error code 127 if webcore is enabled, but not supported during the journey
+Fix privacy-consent denied error mapping
+Use HyperSnapSDK version 5.0.0
+Improve security measures for the face module
+Add camerax support for selfie and qr flows
+Bump HyperVideo 3.0.0
+Upgrade native iOS HyperKYC to 0.39.0
+Improve security measures for the face module
+Enhance device security features
+Enhancements to NFC skip button
+Resolve SwiftyRSA conflicts
+Use HyperSnapSDK 4.31.0
+Improve security measures for the face module
+0.38.1 [12 Feb 2025]
+Upgrade native android HyperKYC to 0.38.1
+Fix prolonged cache issue affecting workflow configs and remote configs
+Use HyperSnapSDK version 4.32.1
+Fix partial image being uploaded in the document upload flow
+0.38.0 [27 Jan 2025]
+Upgrade native android HyperKYC to 0.38.0
+Add support to show consent screen via HyperSnap SDK
+Use HyperSnapSDK 4.32.0
+Enable consent screen to support BIPA regulations
+Sync changes from release 4.23.3.2 for config timeout
+Fix NPE issues when baseURL is null while building Retrofit instances
+Upgrade native iOS HyperKYC to 0.38.0
+Add support to show consent screen via HyperSnap SDK
+Use HyperSnapSDK 4.30.0
+Enable consent screen to support BIPA regulations
+0.37.1 [20 Jan 2025]
+Upgrade native android HyperKYC to 0.37.1
+Fix errorCode 104 and errorMessage Initialisation error in webcore mode when setUseLocation is set to true and location permission is not granted
+Remove uuid from all api calls except CPR API calls
+Add webCore load time analytics event
+Use HyperSnapSDK 4.31.1
+Update document detection logic after capturing the document
+Fix video recording issues occurring during retake flows
+Update default request body properties sent in the liveness api call
+Upgrade native iOS HyperKYC to 0.37.2
+Add support for webview optimisations
+Remove uuid from all api calls except CPR API calls
+Add webCore load time analytics event
+Use HyperSnapSDK 4.29.1
+Fix the black padding issue during video recording
+Update default request body properties sent in the liveness api call
+0.37.0 [20 Dec 2024]
+Upgrade native android HyperKYC to 0.37.0
+Add to consider moduleId for attempt count logic for face and doc modules
+Use HyperSnapSDK 4.31.0
+Update attempts count logic
+Upgrade native iOS HyperKYC to 0.37.0
+Add to consider moduleId for attempt count logic for face and doc modules
+Use HyperSnapSDK 4.29.0
+Update attempts count logic
+0.36.0 [ 18 Dec 2024 ]
+Upgrade native android HyperKYC to 0.36.0
+Fix webview render crashes when uploading large documents in formV2
+Deprecate loaderLottie to use endStateProcessingLottie
+Add about: scheme to the supported urls list for web view module
+Optimisations to webview module initialization
+Maintenance
+Use HyperSnapSDK 4.30.0
+update face retake logic to sync with iOS and web SDKs
+Upgrade native iOS HyperKYC to 0.36.0
+Support about: schemes on webviews
+Change the priority of loader lottie
+Maintenance
+Use HyperSnapSDK 4.28.1
+Enable private access folder for images saved within app's directory
+Fix crash happening when metadata is attached to face camera
+0.35.1 [ 4 Dec 2024 ]
+Upgrade native android HyperKYC to 0.35.1
+Support multiple accessTypes and MIME types in webcore mode
+0.35.0 [ 29 Nov 2024 ]
+Upgrade native android HyperKYC to 0.35.0
+Add support for prefetch on webcore mode
+Add support for custom image support for button backgrounds to enable gradient customisations
+Use HyperSnapSDK version 4.29.0
+Support background image customisations for buttons to show gradients
+Upgrade native iOS HyperKYC to 0.35.0
+Add support for gradient backgrounds on buttons
+Add suport for prefetch functionality in webCore mode
+Maintenance
+Use HyperSnapSDK 4.28.0
+Add support for gradient backgrounds on buttons
+0.34.0 [ 29 Nov 2024 ]
+Upgrade native android HyperKYC to 0.34.0
+Add support to customise branding color
+Add checks to validate integration and workflow issues
+Fix android webview becoming blank when app goes to background
+Use HyperSnapSDK 4.28.0
+Add support for background solid color customisations to capture screens
+Add support for color customisations to Branding
+Fix memory leak issues
+Upgrade native iOS HyperKYC to 0.34.0
+Add uiConfig support for branding layout on all screens
+Use HyperSnapSDK 4.27.0
+Add support for background solid color customisations to capture screens
+Add support for color customisations to Branding
+0.33.0 [ 12 Nov 2024 ]
+Upgrade native android HyperKYC to 0.33.0
+Add support to customise API loader texts
+Add fixes to reduce "workflow ended because of low memory" errors on non-webcore flows
+Fix font related crashes for NFC scanner page on some devices
+Uses HyperSnapSDK version 4.27.0
+Support customisations to API loader text messages and progress text for NFC in HyperKYC SDK
+Fix to handle low memory errors when Activity is recreated by Android while SDK is used in HyperKYC SDK
+Uses hvnfc-sdk version 3.0.0
+Fixes to solve font related crashes
+Upgrade native iOS HyperKYC to 0.33.0
+Enhancements
+Add uiConfig support for processingLabel & processingHintLabel
+Add support to return an error if there is an issue with the HyperKYC workflow configuration.
+Use HyperSnapSDK 4.26.0
+Add uiConfig support for processingTitleLabel, processingHintLabel
+0.32.0 [ 29 Oct 2024 ]
+Upgrade native iOS HyperKYC to 0.32.0
+
+Removed weak_frameworks support for CoreNFC
+Expose submittedTimestamp [String type] as pre-defined variables in document and face modules
+Add support for secure, sdkVersion, exitIfRooted flags in WebCore mode
+Add support for CLARITY in WebCore mode [disabled by default]
+Use HyperSnapSDK 4.25.0
+Expose submittedTimestamp [Long type] in HVResponse
+Add support for fallback cameraDevice when discoverSession fails
+Fix retry message label image alignment in retake screens
+Use WebCore SDK 8.10.1 by default [once enabled]
+Upgrade native Android HyperKYC to 0.32.0
+
+Expose submittedTimestamp [String type] as pre-defined variables in document and face modules
+Add support for secure, sdkVersion, exitIfRooted flags in WebCore mode
+Add support for CLARITY in WebCore mode [disabled by default]
+Fix issue with native back button when previousStep is empty in WebCore mode
+Fix webview destruction issues in WebCore mode
+Fix end-state visibility issues in WebCore mode
+Fix issue with custom font not loading on initial load
+Use HyperSnapSDK version 4.26.0
+Expose submittedTimestamp [Long type] in HVResponse
+Resolve issue with custom font not loading on initial load
+Remove WAKE_LOCK permission and related services from AndroidManifest.xml
+Use WebCore SDK 8.10.1 by default [once enabled
+0.31.0 [17 Oct 2024]
+Upgrade native Android HyperKYC to 0.31.0
+Fix to resolve icon alignment issues on NFC flows
+Fix to resolve incomplete NFC scan data
+Add support retryIfFaceNotPresent and maxAttemptsForFaceNotPresent on workflow configs for enabling face retake for blurred and no face images
+uses HyperSnapSDK version 4.25.0
+Add support to show selfie retake screen if blurred or no face images are captured
+Uses hvnfc-sdk version 2.1.2
+Fix to resolve incomplete scan data for NFC
+Upgrade native iOS HyperKYC to 0.31.0
+Enhancements
+Added support for incomplete scan and introduced new errorCode 125
+Fixed issue with CPR and list component used in webForms
+Fixed infinite loading that happens when signature verification is enabled for API module
+Maintenance
+Use HyperSnapSDK 4.24.0
+0.30.4 [17 Oct 2024]
+Upgrade native Android HyperKYC to 0.30.4
+Fix CORS issues for WebCore mode
+Use HyperSnapSDK 4.24.5
+Fix primary button arrow gravity on some cases like NFC permissions bottom sheet
+Fix to ensure null error messages are not sent in the SDK response as part of HVError object
+Upgrade native iOS HyperKYC to 0.30.2
+Add support to expose sdk platform type (android for Android platform, iOS for iOS platform)
+Use HyperSnapSDK 4.24.0
+0.30.3 [07 Oct 2024]
+Upgrade native Android HyperKYC to 0.30.3
+Fix Can't access the Fragment View's LifecycleOwner issue [VideoStatementV2]
+Fix Fragment VideoStatementV2Fragment not attached to an activity issue [VideoStatementV2]
+Fix List is empty issue [Back navigation]
+Handle SocketException issue
+Uses HyperSnapSDK 4.24.4
+Fix NPE occurring because of HVFaceConfig.shouldShowModuleBackButton()
+Fix NPE occurring because of HVDocConfig.isShouldShowInstructionPage()
+Fix selfie capture issue occurring when permissions are denied
+Bump HVCamera version 3.4.6
+0.30.2 [ 23 Sep 2024 ]
+Upgrade native iOS HyperKYC to 0.30.1
+Add support for Web Core (Disabled by default, appId Opt-in)
+Add support for step wise analytics in NFC module
+Use HyperSnapSDK 4.24.0
+Upgrade native Android HyperKYC to 0.30.1
+Add support for Web Core (Disabled by default, appId Opt-in)
+Add support for step wise analytics in NFC module
+Fix IllegalStateException crashes on VideoStatement module
+Fix NFCReaderFragment not attached to activity crashes
+Fix lateinit property workflowUIStateList has not been initialized crash
+Use HyperSnapSDK 4.24.3
+Fix NullPointerException crashes on document and QR capture screens
+Fix createContext failed crashes
+Bump HVCamera version 3.4.5
+Fix NullPointerException crashes on getCamera() and setTouchEvent() functions
+Fix createContext failed crash
+0.29.3 [ 23 Sep 2024 ]
+Upgrade native iOS HyperKYC to 0.29.2
+Enhancements
+Update webform version to 8.8.3
+Add sdk type to default inputs
+Update the default lottie for nfc module
+Bug-fixes
+Fix no-limit dateOfExpiry for nfc module
+Fix issue with setting Any inputs on Android
+0.29.2 [ 11 Sep 2024 ]
+Upgrade native android HyperKYC to 0.29.2
+Update NFC instructions animations
+Fix document resuming from back side with cpr and local resume
+Fix intent vulnerability in Native OAuth flow
+Fix injection logic for complex string injections in requestBody
+Fix issues arising from unintended injections on strings containing `
+0.29.1 [ 07 Sept 2024 ]
+Upgrade native iOS HyperKYC to 0.29.1
+Update api mimetype logic to use picked file extensions instead of requestParameters[].type
+Fix callbackUrlScheme injection from inputs
+Use HyperSnapSDK 4.24.0
+Upgrade native Android HyperKYC to 0.29.1
+Update api mimetype logic to use picked file extensions instead of requestParameters[].type
+Use HyperSnapSDK 4.24.2
+Disable native back button when showModuleBackButton is set to false
+0.29.0 [ 05 Sept 2024 ]
+Upgrade native iOS HyperKYC to 0.29.0
+Add support for native OAuth modules
+Add support to add any type variable for inputs
+Update analytics to track background and foreground events
+Add support to expose workflowId as default input
+Use HyperSnapSDK 4.24.0
+Upgrade native Android HyperKYC to 0.29.0
+Add support for native OAuth modules
+Add support to add any type variable for inputs
+Add support for zoomByDefault in the workflow config, to enable front camera zoom for selfie captures
+Add support to expose workflowId as default input
+Update analytics to track background and foreground events
+Fix date component in dynamic forms to ensure value of the same is set
+Fix to show network error cancel button when retry button was tapped more than 3 times
+Fix to handle JSONException when validateSignature is enabled in workflows
+Use HyperSnapSDK 4.24.1
+Fix to show progress while camera is initialising on face capture screen
+Fix to show progress after capturing an image in face capture screen
+0.28.0 [22 Aug 2024]
+Use native iOS HyperKyc 0.28.0
+Features
+Add UI config support for custom background image for non-capture screens
+Add UI config support for capture-screen related UI elements
+Maintenance
+Use HyperSnapSDK 4.24.0
+Use native Android HyperKyc 0.28.0
+Features
+Add UI config support for custom background image for non-capture screens
+Add UI config support for capture-screen related UI elements
+Add support for Android 15
+Bug Fixes
+Fix Fragment FormFragment not attached to an activity crash
+uses HyperSnapSDK 4.24.0
+0.27.1 [9 Aug 2024]
+Use native iOS HyperKyc 0.27.1
+Bug-fixes
+Added nil check for savedTimeStamp for local resume
+Maintenance
+Use HyperSnapSDK 4.23.1
+0.27.0 [7 Aug 2024]
+Use native Android HyperKyc 0.27.0
+Add support for reason in ifTrueConfigs and ifFalseConfigs in the workflow; send failureReason in FT call
+Add support for dynamic form V2 (formV3)
+Add support to enable background image on loader screens
+Add support for prefetching of the background image
+Fix ANRs in OnePlus 11 devices on video statement flows
+Update webform version to 8.8.1
+Use native iOS HyperKyc 0.27.0
+Add support for dynamic form V2
+Adds support to enable background image on loader screens
+Add support for reason in ifTrueConfigs and ifFalseConfigs in the workflow; send failureReason in FT call
+Update webform version to 8.8.1
+Maintenance
+Use HyperSnapSDK 4.23.1
+0.26.2 [24 Jul 2024]
+Use native iOS HyperKyc 0.26.1
+Fix height for Retry button on loading screen
+Fix api flags, to not include success cases, now checks result.summary.details
+Fix non-String values for api flags
+Upgrade native android HyperKyc to 0.26.3
+Fix nfc module back navigation behaviour to return to instructions if enabled
+Fix invalid workflow error when using webForms in low memory conditions
+Fix formWebViewDriver not initialised crash with webForms in low memory conditions
+Fix api flags, to not include success cases, now checks result.summary.details
+Use HyperSnapSDK 4.23.4
+0.26.1 [13 Jul 2024]
+Use native iOS HyperKyc 0.26.0
+Upgrade native android HyperKyc to 0.26.1
+Fix NullPointerException crashes caused due to race conditions when closing the camera for SKYC flows
+Fix FileNotFoundException to resolve crashes when HyperKYCResult cache file is read after it's recycled
+Fix TransactionTooLargeException to resolve crashes when large workflows are loaded
+Use HyperSnapSDK 4.23.4
+0.26.0 [ 01 Jul 2024 ]
+Upgrade native iOS HyperKYC to 0.26.0
+Add support to show retry screen when doc capture and face capture modules return network error.
+Add support to show cancel button when network error is shown on the retry screen
+Add support to textConfig[moduleId_subType] to apply text configs for different modules
+Fix multi-line statement for VideoStatementV2 module
+Fix file upload image preview getting duplicated
+Fix filename when file is uploaded using file component
+Fix reload is not triggered when removing a file if there is only one file in the file upload component
+Use HyperSnapSDK 4.23.0
+Upgrade native Android HyperKYC to 0.26.0
+Add support to textConfig[moduleId_subType] to apply text configs for different modules
+Add support to show cancel button when network error is shown on the retry screen
+Add support to show retry screen when doc capture and face capture modules return network error.
+Add API call timeouts for API module and workflow fetch APIs
+Fix to show custom loaders when activity recreation
+Fix NFCReaderFragment related crashes
+Use HyperSnapSDK 4.23.2
+0.25.0 [21 June 2024]
+Upgrade native iOS HyperKYC to 0.25.0
+
+Features:
+Support Webforms
+Support for useWebForm key in workflow config properties and module properties
+Support real-time updates to websdk version used in web forms
+Make Finish Transaction and final CPR call blocking calls
+Show Retry screens incase of network issues when performing API calls and showing WebViews
+Bug-fixes:
+Fix file upload counter issue
+Fix brief appearance of black screen in WebViews in dark mode
+Fix connection issues present in NFC module
+Maintenance:
+Use HyperSnapSDK 4.23.0
+Upgrade native Android HyperKYC to 0.25.0
+
+Features:
+Support Webforms
+Support for useWebForm key in workflow config properties and module properties
+Support real-time updates to websdk version used in web forms
+Make Finish Transaction and final CPR call blocking calls
+Show Retry screens in case of network issues when performing API calls and showing WebViews
+Bug-fixes:
+Fix file upload counter issue
+Fix inconsistency present in Retry button
+Fix CPR-related bug (invalid mapping of transactionId and uniqueId), handle error code 409
+Fix Fragment NFCReaderFragment not attached to a context crash caused in NFC flow
+Fix Fragment FormFragment not attached to a context crash caused due to file component
+Maintenance:
+Use HyperSnapSDK 4.23.2
+0.24.1 [10 June 2024]
+Upgrade native iOS HyperKyc to 0.24.3
+Bug-fixes:
+Fix npe crash with file upload component
+Maintenance:
+Use HyperSnapSDK 4.22.3
+0.24.0 [ 7 June 2024 ]
+Upgrade native iOS HyperKYC to 0.24.2
+
+Enhancements:
+
+Support retry attempts for NFC module using allowedAttempts
+Support enabling/disabling the skip button for NFC modules using nfcShowSkipButton
+Bug-fixes:
+
+Fix UI/UIX issues on NFC module
+Maintenance:
+
+Use HyperSnapSDK 4.22.3
+Upgrade native Android HyperKYC to 0.24.2
+
+Features:
+Add ability to push debug log files to S3 for error cases [INTERNAL]
+Bug Fixes
+Fix local resume bug that prevented saved module data from being restored
+Fix CPR bug that allowed resume with corrupt local state, where resume is not expected
+Fix extra footer bottom margin issue seen on some devices
+Fix NFC permission dialog's text configs support bug
+Maintenance:
+Use HyperSnapSDK 4.23.0
+0.23.0 [7 June 2024]
+Upgrade native iOS HyperKYC to 0.23.0
+Features
+Add support for radio button component in dynamic forms
+Add support for maxNumberOfFiles for fileUpload component
+Add support for privacy manifest
+Bug Fixes
+Fix issue with button component value updation
+Fix issue with processing rules in dynamicHandlers
+Maintenance:
+Use HyperSnapSDK 4.22.1
+Upgrade native Android HyperKYC to 0.23.0
+Features:
+Add support for radio button component in dynamic forms
+Add support for UI configs to radio button components
+Update file component to hide the option to upload documents when max number of files to upload limit is reached
+Update API module to retry thrice when network fails and for 5xx errors
+Add support to handle cases when file picker apps are not available for document upload flows in doc instruction screen
+Maintenance
+Use HyperSnapSDK 4.22.0
+0.22.1 [3 May 2024 ]
+Upgrade native iOS HyperKYC to 0.22.2
+Fix crashes related to NFC on iOS 17.+ versions
+Use HyperSnapSDK 4.21.2
+Upgrade native Android HyperKYC to 0.22.2
+Add support for NFC instruction screen
+Add support for handling error states thrown by NFC module gracefully within the workflow
+Fix Fragment not attached to activity issue in webview module
+Add NFC lottie to support color customisations
+Fix margins for child components
+Fix add missing alignment constants
+Fix to remove inset padding for text buttons
+Use HyperSnapSDK 4.21.1
+0.22.0 [15 Apr 2024]
+Upgrade native android HyperKyc to 0.22.0
+Upgrade native iOS HyperKyc to 0.22.0
+Add support for prefetch method in HyperKyc to prefetch configs
+0.21.1 [27 Mar 2024]
+Upgrade native android HyperKyc to 0.21.2
+fix IllegalStateException : Already Resumed crashes
+fix crashes with multiple launches of the SDK
+uses hypersnap sdk 4.20.0
+0.21.0 [29 Feb 2024]
+Upgrade native android HyperKyc to 0.21.0
+Upgrade native iOS HyperKyc to 0.21.0
+0.20.2 [27 Feb 2024]
+Upgrade native android HyperKyc to 0.20.3
+fix reload without text bug for divider and label form components
+bump hypersnap sdk to 4.19.2
+add fixes to retain state when API call is in progress in face capture flow
+Upgrade native iOS HyperKyc to 0.20.1
+Migrate analytics fully from Rudderstack to Apollo
+Add support to resume for auto_declined for cross platform resume
+0.20.1 [25 Jan 2024]
+Upgrade native android HyperKyc to 0.20.1
+0.20.0 [23 Jan 2024]
+Upgrade native android HyperKyc to 0.20.0
+Upgrade native iOS HyperKyc to 0.20.0
+0.19.0 [23 Jan 2024]
+Upgrade native android HyperKyc to 0.19.0
+Upgrade native iOS HyperKyc to 0.19.0
+0.18.5 [18 Jan 2024]
+Upgrade native android HyperKyc to 0.18.5
+Upgrade native iOS HyperKyc to 0.18.3
+0.18.4 [17 Jan 2024]
+Upgrade native android HyperKyc to 0.18.4
+Upgrade native iOS HyperKyc to 0.18.3
+0.18.3 [17 Jan 2024]
+Upgrade native android HyperKyc to 0.18.3
+Upgrade native iOS HyperKyc to 0.18.2
+0.18.2 [8 Jan 2024]
+Upgrade native android HyperKyc to 0.18.2
+Upgrade native iOS HyperKyc to 0.18.2
+0.18.1 [12 Dec 2023]
+Upgrade native android HyperKyc to 0.18.1
+Upgrade native iOS HyperKyc to 0.18.1
+0.18.0 [20 Nov 2023]
+Upgrade native android HyperKyc to 0.18.0
+Upgrade native iOS HyperKyc to 0.18.0
+0.17.1 [27 Oct 2023]
+Upgrade native android HyperKyc to 0.17.3
+0.17.0 [23 Oct 2023]
+Upgrade native android HyperKyc to 0.17.2
+Upgrade native iOS HyperKyc to 0.17.0
+0.16.0 [23 Oct 2023]
+Upgrade native android HyperKyc to 0.16.0
+Upgrade native iOS HyperKyc to 0.16.0
+0.15.1 [11 Oct 2023]
+Upgrade native android HyperKyc to 0.15.1
+0.15.0 [16 Sep 2023]
+Upgrade native android HyperKyc to 0.15.0
+Upgrade native iOS HyperKYC to 0.15.0
+0.14.0 [21 Aug 2023]
+Upgrade native android HyperKyc to 0.14.0
+Upgrade native iOS HyperKYC to 0.14.0
+0.13.0 [31 Jul 2023]
+Upgrade native android HyperKyc to 0.13.0
+Upgrade native iOS HyperKYC to 0.13.0
+0.12.0 [5 Jul 2023]
+Upgrade native android HyperKyc to 0.12.0
+Upgrade native iOS HyperKYC to 0.12.0
+Add support for useLocation from config dictionary
+0.11.0 [23 Jun 2023]
+Upgrade native android HyperKyc to 0.11.0
+Upgrade native iOS HyperKYC to 0.11.0
+0.10.0 [19 Jun 2023]
+Upgrade native android HyperKyc to 0.10.0
+Upgrade native iOS HyperKYC to 0.10.1
+0.9.2 [14 Jun 2023]
+Fix callback not invoked for accessToken flow
+0.7.5 [8 May 2023]
+Upgrade native android HyperKyc to 0.7.5
+0.9.1 [8 May 2023]
+Upgrade native android HyperKyc to 0.9.1
+Upgrade native iOS HyperKYC to 0.9.1
+0.8.0 [10 April 2023]
+Upgrade native android HyperKyc to 0.8.0
+Upgrade native iOS HyperKYC to 0.8.0
+0.7.4 [4 March 2023]
+Upgrade native android HyperKyc to 0.7.4
+0.7.3 [4 March 2023]
+Upgrade native iOS HyperKYC to 0.7.2
+Upgrade native android HyperKyc to 0.7.3
+0.7.2 [18 Feb 2023]
+Use native iOS HyperKYC 0.7.1
+Use native android HyperKyc 0.7.2
+Added changes to podspec for iOS framework
+0.7.1 [16 Feb 2023]
+Upgrade native iOS HyperKYC to 0.7.1
+Upgrade native android HyperKyc to 0.7.2
+0.7.0 [8 Feb 2023]
+Upgrade native iOS HyperKYC to 0.7.0
+Upgrade native android HyperKyc to 0.7.0
+0.3.14 [10 Jan 2023]
+Updated Android SDK to 0.3.14
+Updated and fix iOS SDK to 0.3.10
+0.6.0 [2 Jan 2023]
+Upgrade native iOS HyperKYC to 0.6.0
+Upgrade native android HyperKyc to 0.6.0
+0.5.0 [2 Jan 2023]
+Upgrade native iOS HyperKYC to 0.5.0 - Includes DocDetect
+Upgrade native android HyperKyc to 0.5.0 - Includes DocDetect
+Update deployment target to 11 (for iOS)
+Update compileSDK version to 33 (for android)
+Made ios framework static. Have to add use_framework! for HyperKYC pod.
+caution
+The 0.4.x version series does not exist.
+We have instead released the newer versions from 0.5.0 onwards to maintain consistency across all the platforms.
+0.3.13 [2 Jan 2023]
+Updated Android SDK to 0.3.13
+Updated and fix iOS SDK to 0.3.9
+0.3.12 [12 Dec 2022]
+Updated Android SDK to 0.3.12
+Updated and fix iOS SDK to 0.3.8
+0.3.11 [28th Oct 2022]
+Updated Android SDK version to 0.3.10
+0.3.10 [13th Oct 2022]
+Updated Android SDK version to 0.3.8
+0.3.9 [7th Oct 2022]
+Updated Android SDK version to 0.3.6
+0.3.8 [19 Aug 2022]
+Updated Android SDK version to 0.3.2
+0.3.7 [11 Aug 2022]
+Breaking Change - Added support for the new response structure in HyperKYC native SDKs
+Added support for default language code
+0.3.6 [28 July 2022]
+Fixed issue with missing headers in Android
+0.3.5 [28 July 2022]
+Added support to set custom inputs
+Tags:react-native-sdk-changelog
+Last updated on Feb 18, 2026
+Previous
+React Native Integration Guide
+Next
+Flutter SDK
