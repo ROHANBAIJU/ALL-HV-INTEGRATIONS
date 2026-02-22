@@ -1,0 +1,78 @@
+name: hyperverge_unified_app
+description: RB HYPER FLUTTER SDK - Unified HyperVerge KYC Flutter app with dual mode support and comprehensive result tracking
+
+publish_to: 'none'
+version: 2.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # HyperKYC Flutter SDK
+  hyperkyc_flutter: ^2.0.0
+  
+  # UI Components
+  cupertino_icons: ^1.0.6
+  
+  # HTTP & API
+  http: ^1.2.0
+  dio: ^5.4.0
+  
+  # State Management
+  provider: ^6.1.1
+  
+  # Storage
+  shared_preferences: ^2.2.2
+  
+  # UUID Generation
+  uuid: ^4.3.3
+  
+  # Loading Indicators
+  flutter_spinkit: ^5.2.0
+  
+  # Icons
+  font_awesome_flutter: ^10.6.0
+  
+  # File Picker (latest compatible version)
+  file_picker: ^8.0.0
+  
+  # JSON Serialization
+  json_annotation: ^4.8.1
+  
+  # Intl for date formatting
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  
+  flutter_lints: ^3.0.0
+  build_runner: ^2.4.7
+  json_serializable: ^6.7.1
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/app_icon.png"
+  adaptive_icon_background: "#673AB7"
+  adaptive_icon_foreground: "assets/icon/app_icon.png"
+  remove_alpha_ios: true
+
+flutter:
+  uses-material-design: true
+
+  # Assets
+  assets:
+    - assets/icon/
+
+  # Fonts configuration
+  # fonts:
+  #   - family: Poppins
+  #     fonts:
+  #       - asset: assets/fonts/Poppins-Regular.ttf
+  #       - asset: assets/fonts/Poppins-Bold.ttf
+  #         weight: 700

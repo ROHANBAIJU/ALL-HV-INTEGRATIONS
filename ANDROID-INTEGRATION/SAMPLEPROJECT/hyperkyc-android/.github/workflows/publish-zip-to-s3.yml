@@ -1,0 +1,50 @@
+name: Publish hyperkyc-android.zip to S3
+
+on:
+  push:
+    branches: [ "main" ]   # adjust if needed
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: ap-south-1
+  S3_BUCKET: hvsdk
+  S3_PREFIX: sampleapps
+  ZIP_NAME: hyperkyc-android.zip
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove .DS_Store files
+        run: find . -name '.DS_Store' -type f -delete
+
+      - name: Create ZIP (fixed name)
+        run: |
+          git archive --format zip --output "$ZIP_NAME" HEAD
+          echo "OUT_ZIP=$ZIP_NAME" >> "$GITHUB_ENV"
+          echo "Created $ZIP_NAME"
+
+      - name: Configure AWS credentials (from secrets)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            ${{ env.AWS_REGION }}
+
+      - name: Upload hyperkyc-android.zip to S3 (overwrite)
+        run: |
+          aws s3 cp "$OUT_ZIP" "s3://${S3_BUCKET}/${S3_PREFIX}/${ZIP_NAME}" \
+            --content-type application/zip \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --only-show-errors
+          echo "Uploaded s3://${S3_BUCKET}/${S3_PREFIX}/${ZIP_NAME}"
+          echo "Public URL: https://${S3_BUCKET}.s3.${AWS_REGION}.amazonaws.com/${S3_PREFIX}/${ZIP_NAME}"
+

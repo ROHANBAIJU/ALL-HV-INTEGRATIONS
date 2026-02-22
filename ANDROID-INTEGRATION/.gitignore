@@ -1,0 +1,24 @@
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDE Files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Node modules (if any at root level)
+node_modules/
+
+# Vercel
+.vercel/

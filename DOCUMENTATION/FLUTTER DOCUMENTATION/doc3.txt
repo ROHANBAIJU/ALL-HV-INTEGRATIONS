@@ -1,0 +1,215 @@
+Flutter SDK - Integration Guide
+This guide provides step-by-step instructions for integrating the HyperKYC Flutter SDK into your project.
+
+Additional Resource
+Complete Sample Project: A ready to use example project with all the code you need to get started with the Flutter SDK quickly.
+Prerequisites
+Before starting the integration, please ensure you meet all the requirements listed in the Prerequisites for Flutter SDK Integration section.
+
+Integration Steps
+The following steps will guide you through implementing the HyperKYC Flutter SDK in your application:
+
+Step 1: Add the SDK to your Project
+Installation
+HyperKyc Flutter plugin is available on Pub - hyperkyc_flutter
+
+Run the following command in your flutter project directory:
+
+Terminal
+flutter pub add hyperkyc_flutter
+
+Step 2: Platform Setup
+Android Configuration
+Make sure that the minimum SDK version is 21 or higher in android/app/build.gradle:
+Dart
+
+android {
+    defaultConfig {
+        minSdkVersion 21
+        // ... other configurations
+    }
+}
+
+
+Open android/build.gradle file and add the following lines inside allprojects function:
+Dart
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven {
+            url = "https://s3.ap-south-1.amazonaws.com/hvsdk/android/releases"
+        }
+    }
+}
+
+Sync the project
+
+Add only required permissions in AndroidManifest.xml:
+
+android/app/src/main/AndroidManifest.xml
+<uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.CAMERA" />
+
+<!-- Optional permissions - add only if needed -->
+<!-- <uses-permission android:name="android.permission.RECORD_AUDIO" /> -->
+<!-- <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> -->
+<!-- <uses-permission android:name="android.permission.NFC" /> -->
+
+
+Remove unused permissions if needed:
+android/app/src/main/AndroidManifest.xml
+<uses-permission android:name="android.permission.RECORD_AUDIO"
+  tools:node="remove" />
+
+
+iOS Configuration
+cd to iOS directory and run pod install:
+Terminal
+cd ios && pod install && cd ..
+
+
+Add Camera Permissions to request the user for camera permissions, add this key-value pair in your application's Info.plist file:
+ios/Runner/Info.plist
+<key>NSCameraUsageDescription</key>
+<string>Access to camera is needed for document and face capture</string>
+
+<!-- Optional permissions - add only if needed -->
+<key>NSMicrophoneUsageDescription</key>
+<string>Granting mic permission allows you to complete video statement</string>
+
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>Location access is required for KYC verification process</string>
+
+Key-Value Reference:
+
+Key: Privacy - Camera Usage Description
+Value: "Access to camera is needed for document and face capture"
+Step 3 (Optional): Prefetch Resources and Configs
+To improve performance, prefetch resources and configs before launch:
+
+Dart
+await HyperKyc.prefetch(
+    appId: "<app-id>",          // obtain this from HyperVerge dashboard
+    workflowId: "<workflow-id>" // obtain this from HyperVerge dashboard
+);
+
+appId: Your assigned App ID
+workflowId: Workflow configured in the HyperVerge dashboard
+Step 4: Optional Configurations
+Create and customize the HyperKYC configuration to match your specific requirements and workflow needs.
+
+Step 4.1: Create the HyperKYC Config
+HyperKYC Flutter SDK supports two authentication methods for configuration: appID and appKey for straightforward integration, or access tokens for token-based authentication. Both approaches are demonstrated below, with access token generation steps available on the Authentication page.
+
+(Recommended Method) Using Access Tokens
+(Legacy Method) Using Credentials
+The following integration code creates a configuration instance based on the accessToken.
+
+Dart
+var hyperKycConfig = HyperKycConfig.fromAccessToken(
+    accessToken: "<access-token>", // Refer to the "Authentication" page
+    workflowId: "<workflow-id>",
+    transactionId: "<transaction-id>",
+);
+
+Here:
+
+appId & appKey can be accessed from the credentials' tab in the dashboard
+workflowId: To get the workflowID, select the workflow you want to integrate from the workflows' tab of the dashboard
+transactionID: is any unique identifier you want to set for the customer or the customer's application (eg: userId, customerId etc).
+Step 4.2: Customize the Config
+List of workflow configuration options in the HyperVerge Flutter SDK:
+Step 5: Launch the workflow and Implement a Results Handler
+Create a results handler to process the outcome of the workflow. The example below shows how to launch the SDK and handle the results:
+
+Groovy
+try {
+  HyperKycResult hyperKycResult = await HyperKyc.launch(
+      hyperKycConfig: hyperKycConfig
+  );
+  
+  // Handle result post workflow finish/exit
+  String? status = hyperKycResult.status?.value;
+  switch (status) {
+    case 'auto_approved':
+      // workflow successful
+      print('Workflow successful - auto approved');
+      break;
+    case 'auto_declined':
+      // workflow successful
+      print('Workflow successful - auto declined');
+      break;
+    case 'needs_review':
+      // workflow successful
+      print('Workflow successful - needs review');
+      break;
+    case 'error':
+      // failure
+      print('Workflow failed with error');
+      break;
+    case 'user_cancelled':
+      // user cancelled
+      print('User cancelled the workflow');
+      break;
+    default:
+      print('Contact HyperVerge for more details');
+  }
+} catch (e) {
+  print('Error launching HyperKYC: $e');
+}
+
+Step 6 (Optional): Implement Real-Time Event Notifications
+The real-time event notification system provides immediate insights into user journeys through event-based architecture. These events are triggered when users complete major milestones in their journey, allowing you to track progress and implement trigger-based interventions.
+
+To implement real-time event notifications in your Flutter app, refer to the Flutter implementation guide.
+
+Step 7: Launch the SDK
+HyperKycResult hyperKycResult = await HyperKyc.launch(hyperKycConfig: hyperKycConfig);
+
+Important
+Avoid repeated SDK initialization. Ensure your app prevents multiple button presses or asynchronous triggers to avoid multiple invocations of the SDK.
+
+You are now ready to build and run your Flutter app!
+Your Flutter application is now successfully integrated with the HyperKYC SDK. You can build and test your application to ensure everything works as expected.
+
+SDK Responses
+For detailed information about Flutter SDK responses, see the SDK Response Documentation.
+
+Error Response Details
+The Flutter SDK normalizes internal errors into standardized error codes.
+
+Code	Name	Android	iOS	Description
+101	SDK_CONFIG_ERROR	✓	✓	Config errors (empty/invalid appId, workflowId, transactionId, accessToken, defaultLangCode)
+102	SDK_INPUT_ERROR	✓	✓	Invalid/missing inputs, file inaccessible
+103	USER_CANCELLED_ERROR	✓	✓	User closed/cancelled workflow
+104	WORKFLOW_ERROR	✓	✓	Workflow execution errors (doc, face, API, encryption)
+105	SDK_VERSION_ERROR	✓	✓	SDK version not supported by workflow
+106	PERMISSIONS_ERROR	✓	✓	Required permission not granted (camera, mic, location)
+107	HARDWARE_ERROR	✓	✓	Device hardware/camera failure
+108	GPS_ACCESS_DENIED	✓	✓	Location permission denied
+109	QR_SCANNER_ERROR	✓	(reserved)	QR scanner submodule missing (Android)
+110	SSL_CONNECT_ERROR	✓	✓	SSL handshake/pinning failure
+111	NETWORK_ERROR	✓	✓	Connectivity/server errors (timeouts, 4xx/5xx, token expired)
+112	SIGNATURE_FAILED_ERROR	✓	✓	Response signature mismatch
+113	FACE_NOT_DETECTED	✓	✓	Face not detected or blurry
+114	DEVICE_ROOTED_ERROR	✓	–	Android only (rooted/jailbroken device check)
+115	SECURITY_ERROR	(reserved)	✓	iOS only — screenshot or screen recording detected
+117	ACTIVITY_DESTROYED_ERROR	✓	–	Android only — Activity destroyed / low memory
+118	LOW_STORAGE_ERROR	✓	–	Android only — storage < 1 MB
+119	NFC_INVALID_ERROR	✓	–	Android only — NFC SDK not integrated
+120	NFC_UNAVAILABLE_ERROR	✓	✓	NFC not available on device
+121	NFC_AUTHENTICATION_ERROR	✓	✓	NFC chip authentication failed
+122	NFC_CONNECTION_ERROR	✓	✓	NFC card disconnected mid-scan
+123	WEB_FORM_ERROR / FORM_V2_ERROR	✓	✓	Web form integration/config errors
+124	BROWSER_NOT_SUPPORTED	✓	✓	No supported browser available
+125	NFC_INCOMPLETE_SCAN_ERROR	✓	✓	NFC scan incomplete (missing DGs)
+126	PRIVACY_CONSENT_DENIED_ERROR	✓	✓	User denied privacy consent
+127	WEBCORE_NOT_SUPPORTED	✓	–	Android only — missing Play Services / WebView
+128	SDK_EXIT_ERROR	✓	✓	SDK closed unexpectedly / backgrounded
+140	SDK_INTERNAL_ERROR	✓	–	Android only — unexpected state
+141	PERMISSION_REVOKED_ERROR / DATE_FORMAT_ERROR (iOS)	✓	✓	Android: permission revoked mid-flow; iOS: invalid date format
+151	CHECK_SESSION_ERROR	✓	✓	Session validation failed
+Tags:sdk-integrationflutter-sdk
+Last updated on Jan 7, 2026
+Previous

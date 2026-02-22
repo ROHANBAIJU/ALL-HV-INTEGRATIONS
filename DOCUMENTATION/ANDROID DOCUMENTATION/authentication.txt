@@ -1,0 +1,174 @@
+Authentication
+HyperVerge's SDKs and APIs offer a token-based authentication method to secure your integration. The following guide details this method and its implementation.
+
+Using Expiring Tokens (Recommended Method)
+Prerequisite
+Your appId and appKey are non-expiring credentials that can be accessed from the credentials tab of your HyperVerge One dashboard.
+
+Token-based authentication requires generating an access token using your appId and appKey. The generated token authenticates your SDK integration or API calls.
+We recommend this approach for production environments, as it offers enhanced security compared to permanent credentials.
+Token generation must be done from the backend and should not be called from the frontend to ensure the security of your credentials.
+Access tokens have an expiry duration and require periodic regeneration to maintain secure access to our services.
+IP Whitelisting
+The Authentication API requires IP whitelisting for security. During initial onboarding, admin users can whitelist IP addresses through the HyperVerge One Dashboard. Once completed, whitelisted IPs maintain permanent API access.
+
+Generating Access Token
+Request
+The following code snippet demonstrates a standard curl request for the API:
+
+curl --location --request POST 'https://ind-state.idv.hyperverge.co/v2/auth/token' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "appId": "<Enter_the_HyperVerge_appId>",
+  "appKey": "<Enter_the_HyperVerge_appKey>",
+  "expiry": "<Enter_expiry_in_seconds>",
+  "transactionId": "<Enter_the_transaction_ID>",
+  "workflowId": "<Enter_the_workflow_ID>",
+  "authenticateOnResume": "<Enter_yes_or_no>",
+  "mobileNumber": "<Enter_the_mobile_number>" or  "email": "<Enter_the_email>" // if authenticateOnResume is yes
+}'
+
+Test this API
+Inputs
+The following table provides the details of the parameters required for the Authentication API's request body:
+
+Parameter	Mandatory or Optional	Description	Allowed Values	Default Value
+appId and appKey	Mandatory	These are your credentials to access HyperVerge's system. Find them on the HyperVerge One dashboard	Not Applicable	Not Applicable
+expiry	Mandatory	Specifies how long the access token will be valid, in seconds. The maximum supported value is 86400 (24 hours)	Integer	43200 (12 hours)
+transactionId	Mandatory	Unique identifier of the user or application. Has to be same as the value sent during SDK initialization	Not Applicable	Not Applicable
+workflowId	Mandatory	Identifier of the HyperVerge workflow. Find this on the HyperVerge One dashboard or reach out to your integration engineer	Not Applicable	Not Applicable
+authenticateOnResume	Optional	
+Only applicable if Cross Platform Resume functionality is enabled for your workflow.
+Controls how user re-authentication is handled in cross-platform scenarios:
+set to "yes": HyperVerge handles re-authentication via OTP verification (requires either mobileNumber or email)
+set to"no": Your app handles re-authentication internally
+Ensure that your workflow is configured with the authentication flow for resuming users, i.e., when using authenticateOnResume = "yes"
+"yes"/"no"	no
+mobileNumber or email	Optional	
+Only applicable if authenticateOnResume is "yes"
+Used by HyperVerge to verify the user via either a mobile number or email based OTP authentication. You must provide either mobileNumber OR email, but not both
+The authentication flow in your workflow must be configured to support the provided contact method
+Not Applicable	Not Applicable
+
+Advanced Authentication Scenarios
+Additional configuration options for cross-platform authentication and complex user flows:
+Success Response
+The following code snippet demonstrates a response from the Authentication API, if the access token gets generated successfully:
+
+{
+    "status": "success",
+    "statusCode": "200",
+    "result": {
+        "authToken": "<The_generated_Access_Token>"
+    }
+}
+
+Success Response Details
+The following table outlines the details of the success response from the Authentication API:
+
+Parameter	Type	Description
+status	string	The status of the request
+statusCode	string	The HTTP status code of the response
+result	object	Contains the authentication token and associated metadata
+result.authToken	string	The generated access token used for authentication
+Error Responses
+The following are some error responses from the Authentication API:
+
+Invalid Request Body
+Unauthorized Access
+Missing/Invalid Workflow ID
+Unique ID Mismatch
+Internal Server Error
+{
+  "statusCode": 400,
+  "status": "failure",
+  "error": "Request Body Validation has failed",
+  "errorCode": "invalid_request_body"
+}
+
+Error Response Details
+A failure or error response from the API contains a failure status with a relevant status code and error message. The following table lists all error responses:
+
+Status Code	Error Code	Error	Error Description
+400	invalid_request_body	Request Body Validation has failed	The values in the request body are either missing or invalid
+Types of invalid_request_body errors
+400	invalid_request_body	"appId" is required	The appId field is missing from the request
+400	invalid_request_body	"appKey" is required	The appKey field is missing from the request
+400	invalid_request_body	"transactionId" is required	The transactionId field is missing
+400	invalid_request_body	"workflowId" is required	The workflowId field is missing
+400	invalid_request_body	authenticateOnResume is required	The authenticateOnResume field is missing
+400	invalid_request_body	authenticateOnResume must be one of [yes, no]	The authenticateOnResume value is not "yes" or "no"
+400	invalid_request_body	"mobileNumber" must be a string	The mobileNumber is provided but not a string type
+400	invalid_request_body	"email" must be a string	The email is provided but not a string type
+400	invalid_request_body	Only one of mobileNumber or email should be sent	Both mobileNumber and email were included in the request
+400	invalid_request_body	"expiry" must be greater than or equal to 1	The expiry value is less than 1 second
+400	invalid_request_body	"expiry" must be less than or equal to 86400	The expiry value exceeds the maximum allowed (86400 seconds = 24 hours)
+400	invalid_request_body	"expiry" must be a number	The expiry value is not a numeric type
+401	unauthorized_access	Missing/Invalid Credentials	IP is not whitelisted or authorization failed
+404	workflow_not_found	Not Applicable	The entered Workflow ID is missing/incorrect
+409	unique_id_conflict	Conflict in unique ID stored in DB vs what is generated with API inputs	The transactionId provided conflicts with an existing transaction in the database
+500	internal_server_error	Internal Server Error	Please check the request headers or contact the HyperVerge team for resolution
+Using Expiring Tokens (Deprecated Method)
+This is the legacy token-based authentication method that provides a simpler approach. It generates access tokens using only your appId and appKey credentials, without requiring additional parameters like transactionId or workflowId. This method is still functional but lacks the advanced features and security enhancements available in the recommended method.
+
+The access tokens have an expiry duration and require you to regenerate them periodically.
+
+Generating Access Token
+To generate an access token, make the following API call:
+
+curl -X POST 'https://auth.hyperverge.co/login' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "appId": "<Enter_the_HyperVerge_appId>",
+  "appKey": "<Enter_the_HyperVerge_appKey>",
+  "expiry": 300
+}'
+
+Test this API
+note
+The parameters appId and appKey can be accessed from the 'credentials' tab of the dashboard
+The value for the expiry parameter should be an integer representing seconds.
+The default value of the parameter when not passed explicitly is 43200 (equivalent to 12 hours).
+The maximum value supported is 86400 (equivalent to 24 hours).
+Success Response
+If the access token got generated successfully, the following response is returned:
+
+{ 
+  "result":{ 
+    "token":"<Access Token>"           
+  } 
+}
+
+Error Response
+A failure or error response from the API contains a failure status with a relevant status code and error message. The following are the error responses:
+
+Missing Credentials
+Invalid Expiry (too small)
+Invalid Expiry (too large)
+Invalid Credentials
+Internal Server Error
+{
+    "statusCode": "400",
+    "status": "failure",
+    "error": "Missing/Invalid credentials"
+}
+
+Error Response Details
+A failure or error response from the module contains a failure status, with a relevant status code and error message. The following table lists all error responses:
+
+
+Status Code	Error Message	Error Description
+400	Missing/Invalid credentials	The request is missing the mandatory appId , or appKey, or both
+400	Expiry should be greater than 0	The expiry value provided is less than or equal to 0 seconds
+400	Expiry should be within 24 hours from current time	The expiry value exceeds the maximum allowed duration of 24 hours (86400 seconds)
+401	Missing/Invalid credentials	The request has invalid values for appId or appKey or combination of both
+500	Internal Server Error	Please check the request headers or contact the HyperVerge team for resolution
+Tags:authenticationlogin-apigenerating-access-tokens
+Last updated on Nov 26, 2025
+Previous
+Other Resources
+Next
+FAQs
+Was this helpful?
+😭
+😞

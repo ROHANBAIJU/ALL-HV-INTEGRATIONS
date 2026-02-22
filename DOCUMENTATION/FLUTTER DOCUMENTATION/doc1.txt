@@ -1,0 +1,52 @@
+Flutter SDK
+Introduction
+The HyperKYC Flutter SDK enables you to integrate workflows inside your Flutter app, providing cross-platform identity verification capabilities for both Android and iOS platforms.
+
+Key Features
+Provides cross-platform support for both Android and iOS platforms
+Delivers native performance through platform-specific implementations
+Enables core functionalities like Camera and Geo Location without internet connectivity
+Features modular architecture to exclude unused components and reduce app size
+Allows configurable UI text for multiple languages
+Enables seamless verification continuation across different devices
+Offers easy integration with pub.dev package management
+Implementation Overview
+Add the SDK to your Flutter project as a pub.dev dependency
+Guide users through verification steps using native UI components
+Receive structured results containing status information and extracted data
+Process verification results to determine subsequent steps in user workflows
+Prerequisites
+Development Requirements:
+
+Flutter SDK: 3.0+ (recommended)
+Dart SDK: 2.17+ (recommended)
+Android: minSdkVersion 21 (Android 5.0) or higher
+iOS: iOS 12+ with Xcode 15.1+
+Development Environment: Flutter CLI with Android Studio or VS Code
+Platform-specific toolchains for Android and iOS development
+Required Permissions:
+
+The SDK requires:
+
+Camera : for document/face capture
+Microphone : for video workflows (optional)
+Location (optional) : if setUseLocation(true) is enabled
+NFC (optional) : for NFC-based verification workflows
+Flutter SDK permissions are handled through platform-specific configuration files. For Android, permissions are configured in the AndroidManifest.xml file, while iOS permissions are handled through Info.plist customization. You add only the permissions your app needs to the respective configuration files, and omit those you don't require. For a comprehensive list of all required permissions, optional permissions, and detailed configuration examples, see our SDK Permissions Guide.
+
+HyperVerge Account Setup:
+
+Active HyperVerge account with dashboard access
+Set up and configure a specific workflow in your HyperVerge One account dashboard
+Obtain valid appId and appKey credentials from the HyperVerge One dashboard
+Ensure you provide the correct WorkflowID to integrate any workflow provided by HyperVerge
+Related Documentation
+Page	Description
+Quick Start Guide	Get started quickly with Flutter SDK using this step-by-step quick start guide
+Integration Guide	Step by step guide for integrating the Flutter SDK into your Flutter application with code examples
+Changelogs	Track version updates, new features, bug fixes, and breaking changes in the Flutter SDK
+SDK Permissions Guide	Learn about required permissions, optional permissions, and how to configure platform-specific files for your Flutter app
+Tags:sdk-documentationflutter-sdk
+Last updated on Nov 13, 2025
+Previous
+React Native SDK Changelog

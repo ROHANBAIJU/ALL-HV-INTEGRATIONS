@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">RB-ANDROID-SDK-TESTER</string>
+    
+    <!-- Mode Selection -->
+    <string name="mode_default">Default Mode</string>
+    <string name="mode_dynamic">Dynamic Mode</string>
+    <string name="mode_description_default">Using default credentials from backend</string>
+    <string name="mode_description_dynamic">Enter custom credentials for testing</string>
+    
+    <!-- Input Fields -->
+    <string name="label_app_id">App ID</string>
+    <string name="label_app_key">App Key</string>
+    <string name="label_workflow_id">Workflow ID</string>
+    <string name="label_transaction_id">Transaction ID</string>
+    <string name="hint_app_id">Enter your HyperVerge App ID</string>
+    <string name="hint_app_key">Enter your HyperVerge App Key</string>
+    <string name="hint_workflow_id">Enter your workflow ID</string>
+    
+    <!-- Buttons -->
+    <string name="btn_generate_transaction_id">Generate Transaction ID</string>
+    <string name="btn_initialize_workflow">Initialize Workflow</string>
+    <string name="btn_test_workflow">Test Workflow</string>
+    <string name="btn_try_again">Try Again</string>
+    <string name="btn_start_new">Start New Verification</string>
+    <string name="btn_okay">Okay</string>
+    <string name="btn_done">Done</string>
+    <string name="btn_retry">Retry</string>
+    
+    <!-- Status Messages -->
+    <string name="status_ready">Ready to start verification</string>
+    <string name="status_generating_token">Generating access token…</string>
+    <string name="status_launching_sdk">Launching HyperVerge SDK…</string>
+    
+    <!-- Result Screens -->
+    <string name="result_auto_approved_title">Verification Successful</string>
+    <string name="result_auto_approved_message">Your KYC verification has been automatically approved. All checks passed successfully.</string>
+    
+    <string name="result_auto_declined_title">Verification Declined</string>
+    <string name="result_auto_declined_message">The verification process was declined. Please review the details and try again with valid information.</string>
+    
+    <string name="result_needs_review_title">Manual Review Required</string>
+    <string name="result_needs_review_message">Your verification is pending manual review. You will be notified once the review is complete.</string>
+    
+    <string name="result_user_cancelled_title">Verification Cancelled</string>
+    <string name="result_user_cancelled_message">You cancelled the verification process. Would you like to try again?</string>
+    
+    <string name="result_error_title">Verification Error</string>
+    <string name="result_error_message">An error occurred during the verification process. Please check the details below and try again.</string>
+    
+    <!-- Labels -->
+    <string name="label_status">Status</string>
+    <string name="label_transaction_id_display">Transaction ID</string>
+    <string name="label_workflow_id_display">Workflow ID</string>
+    <string name="label_error_code">Error Code</string>
+    <string name="label_error_message">Error Message</string>
+    <string name="label_details">Details</string>
+    <string name="label_timestamp">Timestamp</string>
+    
+    <!-- Validation Messages -->
+    <string name="error_empty_app_id">App ID is required</string>
+    <string name="error_empty_app_key">App Key is required</string>
+    <string name="error_empty_workflow_id">Workflow ID is required</string>
+    <string name="error_generate_transaction_id">Please generate a transaction ID first</string>
+    <string name="error_network">Network error. Please check your connection.</string>
+    <string name="error_backend">Backend error: %s</string>
+    
+    <!-- Info Messages -->
+    <string name="info_transaction_id_generated">Transaction ID generated successfully</string>
+    <string name="info_token_received">Access token received</string>
+</resources>

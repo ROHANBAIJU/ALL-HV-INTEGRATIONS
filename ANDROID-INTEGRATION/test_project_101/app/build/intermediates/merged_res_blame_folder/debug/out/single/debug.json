@@ -1,0 +1,6 @@
+[
+    {
+        "merged": "com.test.project101.app-merged_res-40:/mipmap-mdpi_ic_launcher.xml.flat",
+        "source": "com.test.project101.app-main-42:/mipmap-mdpi/ic_launcher.xml"
+    }
+]

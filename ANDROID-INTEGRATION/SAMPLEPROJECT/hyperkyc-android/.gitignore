@@ -1,0 +1,60 @@
+# Gradle
+.gradle/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+.gradle/caches/
+.gradle/daemon/
+.gradle/native/
+.gradle/locks/
+.gradle/gradle.properties
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Android Studio
+.idea/
+*.iml
+.idea/caches
+.idea/libraries
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+
+# Keystore files (don’t ever commit your release keystore!)
+*.jks
+*.keystore
+
+# Google Services (keep only if required for CI/CD, otherwise ignore)
+google-services.json
+GoogleService-Info.plist
+
+# Logs
+*.log
+
+# APK / AAB outputs
+*.apk
+*.ap_
+*.aab
+
+# NDK
+obj/
+*.so
+
+# IntelliJ
+out/
+
+# Proguard
+proguard/
+*.pro
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.lock
+*.orig
+*.tmp
+*.bak
