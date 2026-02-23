@@ -108,15 +108,14 @@ data class WebhookResult(
     val transactionId: String,
     @SerializedName("workflowId")
     val workflowId: String?,
-    @SerializedName("status")
+    @SerializedName("applicationStatus")
     val status: String?,
-    @SerializedName("timestamp")
+    @SerializedName("eventTime")
     val timestamp: String?,
     @SerializedName("receivedAt")
     val receivedAt: String?,
-    @SerializedName("result")
-    val result: Map<String, Any>?,
-    @SerializedName("rawData")
+    val result: Map<String, Any>? = null, // unused, kept for compat
+    @SerializedName("webhookRaw")
     val rawData: Map<String, Any>?
 )
 
@@ -126,8 +125,7 @@ data class WebhookResult(
 data class WebhookQueryResponse(
     @SerializedName("success")
     val success: Boolean,
-    @SerializedName("found")
-    val found: Boolean,
+    val found: Boolean = false, // not in backend response; use success + data instead
     @SerializedName("message")
     val message: String?,
     @SerializedName("data")

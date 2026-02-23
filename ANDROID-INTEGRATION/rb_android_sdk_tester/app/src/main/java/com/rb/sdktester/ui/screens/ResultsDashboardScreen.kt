@@ -493,7 +493,7 @@ private fun LogsApiTab(
     logsApiError: String?,
     onCallLogsApi: () -> Unit
 ) {
-    val webhookReceived = webhookResult?.found == true && webhookResult.data != null
+    val webhookReceived = webhookResult?.success == true && webhookResult.data != null
 
     Column(
         modifier = Modifier
