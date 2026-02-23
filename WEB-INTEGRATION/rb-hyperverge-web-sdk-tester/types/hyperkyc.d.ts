@@ -24,6 +24,10 @@ declare global {
    *
    * Option 2 (v9.11.0+): workflowId + transactionId embedded in JWT
    *   new HyperKycConfig(jwtToken, showLandingPage?)
+   *
+   * Additional config methods from official sample project:
+   *   setInputs(), supportDarkMode(), setCustomFontStylesheet(),
+   *   setInitialLoaderColor(), setDefaultLangCode(), setUseLocation()
    */
   class HyperKycConfig {
     constructor(
@@ -33,7 +37,18 @@ declare global {
       showLandingPage?: boolean
     );
     constructor(jwtToken: string, showLandingPage?: boolean);
+    /** Pre-fill workflow input fields */
     setInputs(inputs: Record<string, string>): void;
+    /** Enable/disable dark mode for the SDK UI */
+    supportDarkMode(enabled: boolean): void;
+    /** Load a custom Google Fonts stylesheet for the SDK UI */
+    setCustomFontStylesheet(url: string): void;
+    /** Override the initial spinner/loader color (hex or CSS color) */
+    setInitialLoaderColor(color: string): void;
+    /** Set UI language (e.g. 'en', 'hi', 'ar') */
+    setDefaultLangCode(langCode: string): void;
+    /** Request browser geolocation during verification */
+    setUseLocation(useLocation: boolean): void;
   }
 
   namespace HyperKYCModule {

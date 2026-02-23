@@ -36,8 +36,8 @@ const imgSrc     = `img-src 'self' data: blob: ${HV_WILDCARD} ${HV_EDGE} ${CDNJS
 const frameSrc   = `frame-src 'self' ${HV_WILDCARD}`;
 const mediaSrc   = "media-src 'self' blob:";
 const workerSrc  = "worker-src 'self' blob:";
-const styleSrc   = "style-src 'self' 'unsafe-inline'";
-const fontSrc    = "font-src 'self' data: https://fonts.gstatic.com";
+const styleSrc   = `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`;
+const fontSrc    = "font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com";
 const defaultSrc = "default-src 'self'";
 
 const csp = [defaultSrc, scriptSrc, connectSrc, imgSrc, frameSrc, mediaSrc, workerSrc, styleSrc, fontSrc].join("; ");
