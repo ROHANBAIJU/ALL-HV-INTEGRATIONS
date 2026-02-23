@@ -1,0 +1,213 @@
+Results Webhook
+The following document highlights the details of the Results Webhook.
+
+Overview
+The Results Webhook API notifies your application when an application's status changes. Use it to receive triggers for the following events:
+
+When an application's status is moved from 'started' to any other status by an SDK or onboard link.
+When an application that's in 'Needs Review' state has been "Manually Approved" or "Manually Declined" on the Applications tab of HyperVerge's dashboard.
+Learn about statuses
+
+Results webhook configuration flow
+Follow this flow when configuring the results webhook:
+
+Check for existing subscriptions: Fetch your current webhook subscription (if any). See Fetching subscription details.
+Create a new subscription: If you do not have an existing subscription, create one using the method POST. This is a one-time activity before going live, not a recurring process or cron job. See Creating a new subscription.
+Update an existing subscription: If you already have a subscription and want to change the webhook URL, events, or other settings, update it using the method PUT. See Updating subscription.
+Configuration URL
+Create, update, or retrieve your webhook subscription using the base URL for your region:
+
+Region	Configuration URL
+USA	https://review-api-usa.idv.hyperverge.co/api/v1/config
+All other regions (ind, sgp, idn, zaf)	https://review-api.idv.hyperverge.co/api/v1/config
+Creating a new subscription
+Use the Results Webhook API to create a new subscription so your application receives results webhook events.
+
+Method
+POST
+
+Headers
+Header	Mandatory / Optional	Description	Input Format
+appId	Mandatory	The application identifier shared by HyperVerge. You can find it in the dashboard's credentials tab	Unique value provided by HyperVerge
+appKey	Mandatory	The application key shared by HyperVerge. You can find it in the dashboard's credentials tab	Unique value provided by HyperVerge
+Content-Type	Mandatory	Defines the media type for the request	application/json
+Inputs
+The following table provides the details of the parameters required for the POST request (create subscription):
+
+Parameter	Mandatory or Optional	Description
+webhookUrl	Mandatory	The URL that will receive webhook events.
+events	Mandatory	Events to subscribe to:
+
+• FINISH_TRANSACTION_WEBHOOK: When an application is completed by an SDK or onboard link.
+
+• MANUAL_REVIEW_STATUS_UPDATE: When an application is Approved or Declined on the Applications tab of the HyperVerge dashboard.
+
+• INTERMEDIATE_TRANSACTION_WEBHOOK: When an application has been submitted and is undergoing further processing.
+Request
+The following code snippet demonstrates a standard curl request for the API:
+
+Other regions (ind, sgp, idn, zaf)
+US
+curl --location --request POST 'https://review-api.idv.hyperverge.co/api/v1/config' \
+--header 'appId: <Enter_the_HyperVerge_appId>' \
+--header 'appKey: <Enter_the_HyperVerge_appKey>' \
+--header 'Content-Type: application/json' \
+--data '{
+    "webhookUrl": "<Webhook URL>",
+    "events": [
+        "<EVENT_1>",
+        "<EVENT_2>"
+    ]
+}'
+
+Test this API
+Success Response
+A successful response returns the current webhook configuration:
+
+{
+    "statusCode": 200,
+    "status": "success",
+    "result": {
+        "appId": "123456",
+        "webhookUrl": "<The_webhook_URL>",
+        "created_at": "2022-01-09T12:50:34.544Z",
+        "updated_at": "2022-01-09T12:50:34.544Z",
+        "id": "1"
+    }
+}
+
+Updating subscription
+Use the Results Webhook API to update your existing results webhook subscription: change the webhook URL, which events you subscribe to, or optional headers sent with each webhook call.
+
+Method
+PUT
+
+Headers
+Header	Mandatory / Optional	Description	Input Format
+appId	Mandatory	The application identifier shared by HyperVerge. You can find it in the dashboard's credentials tab.	Unique value provided by HyperVerge
+appKey	Mandatory	The application key shared by HyperVerge. You can find it in the dashboard's credentials tab.	Unique value provided by HyperVerge
+Content-Type	Mandatory	Defines the media type for the request payload. Required when updating webhook configuration.	application/json
+Inputs
+The following table provides the details of the parameters required for the PUT request (update subscription):
+
+Parameter	Mandatory or Optional	Description
+webhookUrl	Mandatory	The URL that will receive webhook events.
+events	Mandatory	Events to subscribe to:
+
+• FINISH_TRANSACTION_WEBHOOK: When an application is completed by an SDK or onboard link.
+
+• MANUAL_REVIEW_STATUS_UPDATE: When an application is Approved or Declined on the Applications tab of the HyperVerge dashboard.
+
+• INTERMEDIATE_TRANSACTION_WEBHOOK: When an application has been submitted and is undergoing further processing.
+headers	Optional	Static headers (e.g. for authentication) to be sent with each webhook request to your URL.
+Request
+The following code snippet demonstrates a standard curl request for the API:
+
+Other regions (ind, sgp, idn, zaf)
+US
+curl --location PUT 'https://review-api.idv.hyperverge.co/api/v1/config' \
+--header 'appid:<Enter_the_HyperVerge_appId>' \
+--header 'appkey:<Enter_the_HyperVerge_appKey>' \
+--header 'Content-Type: application/json' \
+--data '{
+    "webhookUrl": "<Enter_webhook_URL>",
+    "events": [
+        "<EVENT_1>",
+        "<EVENT_2>"
+    ],
+     "headers": {
+        "foo": "bar"
+    }
+}'
+
+Test this API
+Success Response
+A successful update returns:
+
+{
+    "statusCode": 200,
+    "status": "success",
+    "result": 1
+}
+
+Fetching subscription details
+Use the Results Webhook API to fetch your current results webhook subscription details (webhook URL, subscribed events, and optional headers).
+
+Method
+GET
+
+Headers
+Header	Mandatory / Optional	Description	Input Format
+appId	Mandatory	The application identifier shared by HyperVerge. You can find it in the dashboard's credentials tab	Unique value provided by HyperVerge
+appKey	Mandatory	The application key shared by HyperVerge. You can find it in the dashboard's credentials tab	Unique value provided by HyperVerge
+Content-Type	Optional	Defines the media type for the request	application/json
+Request
+The following code snippet demonstrates a standard curl request for the API:
+
+Other regions (ind, sgp, idn, zaf)
+US
+curl --location GET 'https://review-api.idv.hyperverge.co/api/v1/config' \
+--header 'appId:<Enter_the_HyperVerge_appId>' \
+--header 'appKey:<Enter_the_HyperVerge_appKey>' \
+
+Test this API
+Success Response
+A successful response returns your subscription configuration(s):
+
+{
+    "statusCode": 200,
+    "status": "success",
+    "result": [
+        {
+            "id": "5",
+            "appId": "18b868",
+            "vendor": null,
+            "webhookUrl": "<Webhook_URL>",
+            "createdAt": "2022-08-22T14:55:24.688Z",
+            "updatedAt": "2022-08-22T14:58:08.297Z",
+            "events": [
+                 "<EVENT_1>",
+                 "<EVENT_2>"
+            ]
+        }
+    ]
+}
+
+Webhook payload
+Sample Template
+MANUAL_REVIEW_STATUS_UPDATE
+INTERMEDIATE_TRANSACTION_WEBHOOK
+{
+    "eventType": "",
+    "eventTime": "",
+    "eventVersion": "",
+    "applicationStatus":"", 
+    "transactionId":"",
+    "eventId": ""
+}
+
+The following table describes the payload fields:
+
+Parameter	Description
+eventType	One of:
+
+• MANUAL_REVIEW_STATUS_UPDATE: The application was Approved or Declined on the dashboard.
+
+• FINISH_TRANSACTION_WEBHOOK: The application was completed by an SDK or onboard link.
+
+• INTERMEDIATE_TRANSACTION_WEBHOOK: The application was submitted and is undergoing further processing.
+eventTime	UTC time when the event was created (e.g. 2022-08-22T12:48:32.346Z).
+applicationStatus	One of: auto_approved, auto_declined, manually_approved, manually_declined, needs_review, kyc_in_progress, user_cancelled, error.
+
+Learn more about statuses
+transactionId	The unique transaction ID sent during SDK initialization or when generating the onboard link.
+Tags:webhooksresults-webhook
+Last updated on Feb 20, 2026
+Previous
+Logs API
+Next
+Other Resources
+Was this helpful?
+😭
+😞
+😐

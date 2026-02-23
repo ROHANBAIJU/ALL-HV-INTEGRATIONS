@@ -1,0 +1,182 @@
+Logs API
+The following document highlights the details of the Logs API.
+
+Prerequisite
+The Logs API returns a response only after the Results Webhook has been delivered for that transaction. Configure the webhook and wait for it to be sent before calling this API.
+
+API Description
+Objective
+The Logs API, also known as the Results API, retrieves comprehensive details associated with an application, including outputs of all modules executed for it. The Logs API can be used alongside both SDKs and onboard links.
+
+Input	Output
+Transaction ID and optional request parameters (e.g. sendFlag, sendUserDetails)	Comprehensive application details, including workflow details, application status, user details, and results of all modules executed
+IP Whitelisting
+For security purposes, the Logs API requires IP whitelisting. You can whitelist your IP addresses through the HyperVerge Dashboard. This is a one-time setup that needs to be done during your initial onboarding. Once whitelisted, your IP will have permanent access to the Logs API.
+
+Only users with admin access can perform IP whitelisting. Due to security restrictions, only adding new IPs is supported - editing or deleting existing entries is not allowed.
+
+For additional support or queries, please contact our support team at support@hyperverge.co.
+
+API URL
+Use the base URL for your region:
+
+Region	Logs API URL
+ind	https://ind.idv.hyperverge.co/v1/link-kyc/results
+sgp	https://sgp.idv.hyperverge.co/v1/link-kyc/results
+idn	https://idn.idv.hyperverge.co/v1/link-kyc/results
+usa	https://usa.idv.hyperverge.co/v1/link-kyc/results
+zaf	https://zaf.idv.hyperverge.co/v1/link-kyc/results
+API Endpoint
+link-kyc/results
+Overview
+The Logs API is RESTful and uses standard HTTP verbs and status codes. The responses are in JSON format, and you should send all data in JSON format through a POST request.
+
+Method - POST
+Authentication
+You need a unique pair of application ID ( appId ) and application key ( appKey ) from HyperVerge to verify your identity for accessing the Logs API.
+
+Headers
+Header	Mandatory / Optional	Description	Input Format
+content-type	Mandatory	The media type for the request payload.	application/json
+appId	Mandatory	The application identifier shared by HyperVerge. You can find the details in the dashboard's credentials tab.	This should be a unique value.
+appKey	Mandatory	The application key shared by HyperVerge. You can find the details in the dashboard's credentials tab.	This should be a unique value.
+Inputs
+The following table provides the details of the parameters required for the Logs API's request body:
+
+Parameter	Mandatory / Optional	Type	Description	Input Format	Default Value
+transactionId	Optional	string	A unique identifier for tracking a user journey.	This should be both unique and easily associated with the user's journey in your application(s).	Not Applicable
+sendFlag	Optional	string	Specifies whether to send a flag in the response	yes or no	yes
+bucketPathFlag	Optional	string	Specifies whether to include the bucket path in the response	yes or no	no
+removeS3Image	Optional	string	Indicates whether to remove the S3 image after processing	yes or no	no
+sendUserDetails	Optional	string	Indicates whether user details should be included in the response	yes or no	Not Applicable
+sendDebugInfo	Optional	string	Indicates whether debug information should be included in the response	yes or no	Not Applicable
+showHiddenRequests	Optional	string	Indicates whether to include hidden requests in the response	yes or no	yes
+generateNewLinks	Optional	string	Specifies whether to generate new links for the result	yes or no	no
+flagComputationVersion	Optional	string	The version of the flag computation logic to use	A valid version identifier v1 or v2 as string	Not Applicable
+sendFailureReason	Optional	string	Indicates whether the reason for failure should be included in the response	yes or no	Not Applicable
+preferWorkflowIdFromFinishTransaction	Optional	string	Indicates the preference for using the workflow ID from the finished transaction	yes or no	Not Applicable
+sendTamperingResult	Optional	string	Specifies whether to include the tampering result in the response	yes or no	Not Applicable
+shouldReturnProcessedAtTime	Optional	string	Indicates whether to include the processed at time in the response	yes or no	yes
+shouldReturnComments	Optional	string	Indicates whether comments should be included in the response	yes or no	Not Applicable
+includePreviousAttempts	Optional	string	Specifies whether to include previous attempts in the response	yes or no	yes
+Request
+The following code snippet demonstrates a standard curl request for the Logs API:
+
+curl --location 'https://{region_code}.idv.hyperverge.co/v1/link-kyc/results' \ // Substitute {region_code} with your deployment region (e.g. ind — India, zaf — South Africa)
+--header 'Content-Type: application/json' \
+--header 'appId: <Enter_the_HyperVerge_appId>' \
+--header 'appKey: <Enter_the_HyperVerge_appKey>' \
+--data-raw '{
+    "transactionId": "<Enter_the_Transaction_ID>",
+    "sendFlag": <yes/no>,
+    "bucketPathFlag": <yes/no>,
+    "removeS3Image": <yes/no>,
+    "sendUserDetails": "<Enter_the_preference_for_user_details>",
+    "sendDebugInfo": "<Enter_the_preference_for_debug_info>",
+    "showHiddenRequests": <yes/no>,
+    "generateNewLinks": <yes/no>,
+    "flagComputationVersion": "<Enter_the_version>",
+    "sendFailureReason": "<Enter_the_preference_for_failure_reason>",
+    "preferWorkflowIdFromFinishTransaction": "<Enter_the_preference_for_workflow_ID>",
+    "sendTamperingResult": "<Enter_the_preference_for_tampering_result>",
+    "shouldReturnProcessedAtTime": <yes/no>,
+    "shouldReturnComments": "<Enter_the_preference_for_comments>",
+    "includePreviousAttempts": <yes/no>
+}'
+
+Test this API
+Success Response
+The following code snippet demonstrates a success response from the Logs API:
+
+{
+  "status": "success",
+  "statusCode": 200,
+  "metadata": {
+    "requestId": "1659672179713-f148b2cb-a26b-4477-bbfe-2b8e98adadf4",
+    "transactionId": "123456"
+  },
+  "result": {
+    "workflowDetails": {
+      "workflowId": "workflow_q34asdfaer",
+      "version": 1
+    },
+    "applicationStatus": "needs_review",
+    "userDetails": {
+      "name": "Jane Doe",
+      "dateOfBirth":"03-02-1993"
+    }
+    "results": [
+      {
+        "module": "<Name of module>",
+        "moduleId": "<Module ID>",
+        <REST_OF_MODULE_OUTPUT>
+      },
+      "processedAt": "2023-12-19T06:51:47.000Z",
+      "attempts": "1",
+      {
+        "module": "<Name of module>",
+        "moduleId": "<Module ID>",
+        <REST_OF_MODULE_OUTPUT>
+      }
+      "processedAt": "2023-12-16T11:48:31.000Z",
+      "attempts": "2"
+      ...
+    ]
+  }
+}
+
+Success Response Details
+The following table outlines the details of the success response from the Logs API:
+
+Parameter	Type	Description
+status	string	Status of the Logs API call
+statusCode	integer	Status code of the API call (200/422/429/500/503)
+metadata	object	Contains metadata related to the API call
+metadata.requestId	string	A unique identifier for the API call, assigned by HyperVerge. Helpful while reporting bugs
+metadata.transactionId	string	The same transactionId that you send during the SDK initialisation
+result	object	All the results corresponding to the above transactionId
+result.processedAt	string	Timestamp when the processing occurred for a specific result. Format: ISO 8601 date-time (YYYY-MM-DDTHH:MM:SS.SSSZ)
+result.workflowDetails	object	Details about the workflow that was used with this transactionId
+result.workflowDetails.workflowId	string	The workflowId of the workflow used
+result.workflowDetails.version	number	Version number of the workflow. By default it is 1
+result.applicationStatus	string	Current status of the application. Learn more about statuses
+result.userDetails	object	The JSON that was returned by SDK to the App except for local image paths
+result.results	array	Array of results of all modules executed as part of this application. Module documentation describes the results format of each module.
+Error Responses
+The following are some error responses from the Logs API:
+
+Authentication Error
+Transaction ID Not Found
+5xx Errors
+{
+    "status": "failure",
+    "statusCode": 401,
+    "metadata": {
+        "requestId": "<Request_ID>"
+    },
+    "result": {
+        "error": "Missing/Invalid credentials"
+    }
+}
+
+Error Response Details
+A failure or error response from the Logs API contains a failure status with a relevant status code and error message. The following table lists all error responses:
+
+Status Code	Error Message	Error Description	Error Resolution
+401	Missing/Invalid credentials	The request is either missing the mandatory appId and appKey combination or has invalid credentials	Provide valid appId and appKey credentials in the request
+422	TransactionId not found	The request has an invalid transaction ID or the transaction was not found	Check the cURL request and provide a valid transaction ID as mentioned earlier on this page
+429	Rate limit Error	You have exceeded the configured limit on the number of transactions permitted in a minute	Please contact the HyperVerge team for resolution
+500	Internal Server Error	The request has an internal server error	Please check the request headers or contact the HyperVerge team for resolution
+503	Server Busy	The service is currently unavailable	Please contact the HyperVerge team for resolution
+Tags:logs-apiresults-apiaccessing-results
+Last updated on Feb 20, 2026
+Previous
+Output API
+Next
+Results Webhook API
+Was this helpful?
+😭
+😞
+😐
+🙂
+🤩

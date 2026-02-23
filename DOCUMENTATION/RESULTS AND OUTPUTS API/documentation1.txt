@@ -1,0 +1,19 @@
+Accessing Results
+This page provides quick access to the different methods for accessing and retrieving results from HyperVerge APIs. Click a box below to explore the available options.
+
+Output API
+
+Retrieve a summary of the application and user journey. Applicable for both SDK integration and onboard links.
+
+
+Logs API
+
+Retrieve comprehensive details associated with an application, including outputs of all modules executed. Requires IP whitelisting.
+
+
+Results Webhook
+
+Receive real-time notifications when application status changes or when applications are manually approved or declined.
+
+
+Tags:accessing-resultsoutput-apiresults-apiwebhooks
