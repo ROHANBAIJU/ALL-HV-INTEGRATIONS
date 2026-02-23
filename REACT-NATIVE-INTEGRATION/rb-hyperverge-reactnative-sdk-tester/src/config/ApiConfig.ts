@@ -1,7 +1,7 @@
 // Environment configuration — mirrors EnvironmentConfig.kt in the Android tester
 const DEV_BASE_URL = 'http://192.168.0.105:3000';
 const PROD_BASE_URL =
-  'https://unified-backend-for-all-sdks-d76nz9uok.vercel.app';
+  'https://unified-backend-for-all-sdks-p1bb4tasc.vercel.app';
 
 class ApiConfig {
   private static instance: ApiConfig;

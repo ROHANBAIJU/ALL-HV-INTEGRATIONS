@@ -11,7 +11,11 @@ import {
 } from 'react-native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RouteProp} from '@react-navigation/native';
-import ApiService, {WebhookQueryResponse} from '../api/ApiService';
+import ApiService, {
+  WebhookQueryResponse,
+  OutputApiResponse,
+  LogsApiResponse,
+} from '../api/ApiService';
 import ApiConfig from '../config/ApiConfig';
 import CopyableJsonCard from '../components/CopyableJsonCard';
 
@@ -96,7 +100,7 @@ const ResultsDashboardScreen: React.FC<Props> = ({navigation, route}) => {
   const {sdkResponse, transactionId} = route.params;
   const [activeTab, setActiveTab] = useState(0);
 
-  const tabs = ['SDK Response', 'Outputs API', 'Webhooks'];
+  const tabs = ['SDK Response', 'Output API', 'Logs API'];
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -110,7 +114,11 @@ const ResultsDashboardScreen: React.FC<Props> = ({navigation, route}) => {
           <Text style={styles.backButtonText}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Results Dashboard</Text>
-        <View style={{width: 36}} />
+        <TouchableOpacity
+          style={styles.newFlowBtn}
+          onPress={() => navigation.goBack()}>
+          <Text style={styles.newFlowBtnText}>New Flow</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Tab Bar */}
@@ -234,13 +242,12 @@ const SdkResponseTab: React.FC<{sdkResponse: any; transactionId: string}> = ({
   );
 };
 
-// ─── Tab 1: Outputs API ───────────────────────────────────────────────────────
+// ─── Tab 1: Output API ───────────────────────────────────────────────────────
 
 const OutputsApiTab: React.FC<{transactionId: string}> = ({transactionId}) => {
   const [loading, setLoading] = useState(true);
-  const [result, setResult] = useState<WebhookQueryResponse | null>(null);
+  const [result, setResult] = useState<OutputApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [fetched, setFetched] = useState(false);
 
   const fetchResults = useCallback(async () => {
     if (!transactionId) {
@@ -251,236 +258,367 @@ const OutputsApiTab: React.FC<{transactionId: string}> = ({transactionId}) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await ApiService.getWebhookResults(transactionId);
+      const data = await ApiService.getOutputApiResults({transactionId});
       setResult(data);
     } catch (err: any) {
-      setError(err.message ?? 'Failed to fetch results');
+      setError(err.message ?? 'Failed to fetch Output API');
     } finally {
       setLoading(false);
-      setFetched(true);
     }
   }, [transactionId]);
 
-  // Auto-fetch on mount with a small delay (let SDK result settle)
   useEffect(() => {
     const timer = setTimeout(fetchResults, 800);
     return () => clearTimeout(timer);
   }, [fetchResults]);
 
+  const appStatus = result?.result?.status ?? 'unknown';
+  const statusCfg = STATUS_CONFIG[appStatus] ?? DEFAULT_STATUS;
+
   return (
     <ScrollView
       style={styles.tabContent}
       contentContainerStyle={styles.tabContentInner}
       showsVerticalScrollIndicator={false}>
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Outputs API</Text>
-        <Text style={styles.cardSubtitle}>
-          GET /api/webhook/results/{transactionId || '(no tx id)'}
-        </Text>
-        <Text style={styles.envBadge}>{ApiConfig.getInstance().baseUrl}</Text>
-      </View>
 
       {loading && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.accent} />
-          <Text style={styles.loadingText}>
-            Fetching results from backend...
-          </Text>
+          <Text style={styles.loadingText}>Calling Output API...</Text>
         </View>
       )}
 
       {!loading && error && (
-        <View style={[styles.card, {borderColor: '#742a2a'}]}>
-          <Text style={[styles.cardTitle, {color: COLORS.error}]}>
-            Fetch Failed
-          </Text>
-          <Text style={styles.errorText}>{error}</Text>
-        </View>
+        <>
+          <View style={[styles.card, {borderColor: '#742a2a'}]}>
+            <Text style={[styles.cardTitle, {color: COLORS.error}]}>⚠️ Error</Text>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchResults}>
+            <Text style={styles.retryButtonText}>🔄 Retry</Text>
+          </TouchableOpacity>
+        </>
       )}
 
       {!loading && result && (
         <>
+          {/* Status Banner */}
           <View
             style={[
-              styles.card,
-              {
-                borderColor: result.found ? COLORS.success : COLORS.warning,
-              },
+              styles.statusBanner,
+              {backgroundColor: statusCfg.bg, borderColor: statusCfg.color},
             ]}>
-            <Text style={styles.cardTitle}>
-              {result.found ? '✅ Results Found' : '⏳ Not Yet Available'}
-            </Text>
-            <DetailRow label="Success" value={String(result.success)} />
-            <DetailRow label="Found" value={String(result.found)} />
-            {result.message && (
-              <DetailRow label="Message" value={result.message} />
-            )}
-            {result.data?.status && (
-              <DetailRow label="Status" value={result.data.status} />
-            )}
-            {result.data?.workflowId && (
-              <DetailRow
-                label="Workflow ID"
-                value={result.data.workflowId}
-                mono
-              />
-            )}
-            {result.data?.timestamp && (
-              <DetailRow label="Timestamp" value={result.data.timestamp} />
-            )}
+            <Text style={styles.statusEmoji}>{statusCfg.emoji}</Text>
+            <View style={styles.statusTextBlock}>
+              <Text style={[styles.statusLabel, {color: statusCfg.color}]}>
+                {statusCfg.label}
+              </Text>
+              <Text style={styles.statusRaw}>Output API result</Text>
+            </View>
           </View>
 
-          {result.data && (
-            <CopyableJsonCard title="Full Webhook Data" data={result.data} />
-          )}
-          <CopyableJsonCard title="Raw API Response" data={result} />
-        </>
-      )}
+          {/* Transaction Details */}
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Transaction Details</Text>
+            <DetailRow
+              label="Transaction ID"
+              value={result.result?.transactionId ?? transactionId}
+              mono
+            />
+            <DetailRow label="Application Status" value={appStatus} />
+          </View>
 
-      {fetched && (
-        <TouchableOpacity style={styles.retryButton} onPress={fetchResults}>
-          <Text style={styles.retryButtonText}>🔄 Retry</Text>
-        </TouchableOpacity>
+          {/* Debug Info */}
+          {result.result?.debugInfo &&
+            Object.keys(result.result.debugInfo).length > 0 && (
+              <CopyableJsonCard
+                title="Debug Info"
+                data={result.result.debugInfo}
+              />
+            )}
+
+          {/* Review Details */}
+          {result.result?.reviewDetails &&
+            Object.keys(result.result.reviewDetails).length > 0 && (
+              <CopyableJsonCard
+                title="Review Details"
+                data={result.result.reviewDetails}
+              />
+            )}
+
+          {/* User Details */}
+          {result.result?.userDetails &&
+            Object.keys(result.result.userDetails).length > 0 && (
+              <CopyableJsonCard
+                title="User Details"
+                data={result.result.userDetails}
+              />
+            )}
+
+          {/* Raw Response */}
+          <CopyableJsonCard title="Raw Output API Response" data={result} />
+
+          <TouchableOpacity style={styles.retryButton} onPress={fetchResults}>
+            <Text style={styles.retryButtonText}>🔄 Refresh</Text>
+          </TouchableOpacity>
+        </>
       )}
     </ScrollView>
   );
 };
 
-// ─── Tab 2: Webhooks ──────────────────────────────────────────────────────────
+// ─── Tab 2: Logs API ─────────────────────────────────────────────────────────
 
 const WebhooksTab: React.FC<{transactionId: string}> = ({transactionId}) => {
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<WebhookQueryResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [called, setCalled] = useState(false);
+  const [isLoadingWebhook, setIsLoadingWebhook] = useState(true);
+  const [webhookResult, setWebhookResult] =
+    useState<WebhookQueryResponse | null>(null);
+  const [webhookError, setWebhookError] = useState<string | null>(null);
 
-  const callResultsApi = async () => {
-    setLoading(true);
-    setError(null);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(false);
+  const [logsResult, setLogsResult] = useState<LogsApiResponse | null>(null);
+  const [logsError, setLogsError] = useState<string | null>(null);
+
+  const webhookReceived =
+    webhookResult?.success === true && !!webhookResult.data;
+
+  const checkWebhook = useCallback(async () => {
+    if (!transactionId) return;
+    setIsLoadingWebhook(true);
+    setWebhookError(null);
     try {
       const data = await ApiService.getWebhookResults(transactionId);
-      setResult(data);
+      setWebhookResult(data);
     } catch (err: any) {
-      setError(err.message ?? 'Failed to call API');
+      setWebhookError(err.message ?? 'Network error');
     } finally {
-      setLoading(false);
-      setCalled(true);
+      setIsLoadingWebhook(false);
+    }
+  }, [transactionId]);
+
+  useEffect(() => {
+    const timer = setTimeout(checkWebhook, 600);
+    return () => clearTimeout(timer);
+  }, [checkWebhook]);
+
+  const callLogsApi = async () => {
+    setIsLoadingLogs(true);
+    setLogsError(null);
+    try {
+      const data = await ApiService.getLogsApiResults({transactionId});
+      setLogsResult(data);
+    } catch (err: any) {
+      setLogsError(err.message ?? 'Failed to call Logs API');
+    } finally {
+      setIsLoadingLogs(false);
     }
   };
+
+  const logsAppStatus =
+    logsResult?.result?.applicationStatus ?? 'unknown';
+  const logsStatusCfg = STATUS_CONFIG[logsAppStatus] ?? DEFAULT_STATUS;
 
   return (
     <ScrollView
       style={styles.tabContent}
       contentContainerStyle={styles.tabContentInner}
       showsVerticalScrollIndicator={false}>
-      {/* How it works */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>🔗 How Webhooks Work</Text>
-        <WebhookStep
-          num="1"
-          text="SDK launches and user completes the verification flow"
-        />
-        <WebhookStep
-          num="2"
-          text="HyperVerge servers POST the result to your backend webhook endpoint at /api/webhook/hyperverge"
-        />
-        <WebhookStep
-          num="3"
-          text="Your backend stores the result in memory/DB keyed by transactionId"
-        />
-        <WebhookStep
-          num="4"
-          text="Call the Results API below to retrieve the stored webhook result"
-        />
-      </View>
 
-      {/* Endpoint Info */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>📡 Webhook Endpoint</Text>
-        <View style={styles.endpointRow}>
-          <View style={styles.methodBadge}>
-            <Text style={styles.methodBadgeText}>POST</Text>
+      {/* Webhook Listener Card */}
+      <View
+        style={[
+          styles.card,
+          {
+            borderColor: webhookReceived
+              ? COLORS.success
+              : COLORS.warning,
+          },
+        ]}>
+        <View style={styles.webhookHeaderRow}>
+          <View style={styles.webhookDotRow}>
+            <View
+              style={[
+                styles.webhookDot,
+                {
+                  backgroundColor: webhookReceived
+                    ? COLORS.success
+                    : COLORS.warning,
+                },
+              ]}
+            />
+            <Text style={styles.cardTitle}>Webhook Listener</Text>
           </View>
-          <Text style={styles.endpointText} numberOfLines={2}>
-            {ApiConfig.getInstance().baseUrl}/api/webhook/hyperverge
-          </Text>
+          {!isLoadingWebhook && (
+            <TouchableOpacity
+              onPress={checkWebhook}
+              style={styles.refreshBtn}>
+              <Text style={styles.refreshBtnText}>🔄</Text>
+            </TouchableOpacity>
+          )}
         </View>
-        <Text style={styles.cardSubtitle}>
-          Configure this URL in your HyperVerge Dashboard as the webhook
-          receiver.
-        </Text>
 
-        <View style={[styles.endpointRow, {marginTop: 10}]}>
-          <View style={[styles.methodBadge, {backgroundColor: '#276749'}]}>
-            <Text style={styles.methodBadgeText}>GET</Text>
+        {isLoadingWebhook ? (
+          <View style={styles.loadingRow}>
+            <ActivityIndicator size="small" color={COLORS.accent} />
+            <Text style={styles.loadingText}>
+              {' '}Checking for webhook event...
+            </Text>
           </View>
-          <Text style={styles.endpointText} numberOfLines={2}>
-            {ApiConfig.getInstance().baseUrl}/api/webhook/results/
-            {'{transactionId}'}
-          </Text>
-        </View>
-        <Text style={styles.cardSubtitle}>
-          Query endpoint to retrieve a stored webhook result by transaction ID.
-        </Text>
+        ) : webhookReceived ? (
+          <>
+            <Text
+              style={[
+                styles.cardTitle,
+                {color: COLORS.success, marginBottom: 8},
+              ]}>
+              ✅ Event received
+            </Text>
+            <DetailRow
+              label="Transaction ID"
+              value={webhookResult!.data!.transactionId}
+              mono
+            />
+            <DetailRow
+              label="Status"
+              value={webhookResult!.data!.applicationStatus ?? '—'}
+            />
+            {webhookResult!.data!.eventTime && (
+              <DetailRow
+                label="Event Time"
+                value={webhookResult!.data!.eventTime!}
+              />
+            )}
+            {webhookResult!.data!.receivedAt && (
+              <DetailRow
+                label="Received At"
+                value={webhookResult!.data!.receivedAt!}
+              />
+            )}
+            {webhookResult!.data!.webhookRaw && (
+              <CopyableJsonCard
+                title="Raw Webhook Payload"
+                data={webhookResult!.data!.webhookRaw}
+              />
+            )}
+          </>
+        ) : webhookError ? (
+          <>
+            <Text style={styles.errorText}>⚠️ {webhookError}</Text>
+            <TouchableOpacity
+              style={[styles.retryButton, {marginTop: 10}]}
+              onPress={checkWebhook}>
+              <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <Text style={styles.waitingText}>
+              ⏳  Waiting for finish_transaction webhook...
+            </Text>
+            <TouchableOpacity
+              style={[styles.retryButton, {marginTop: 10}]}
+              onPress={checkWebhook}>
+              <Text style={styles.retryButtonText}>Check Again</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
 
-      {/* Transaction ID */}
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Current Transaction</Text>
-        <View style={styles.txnIdBox}>
-          <Text style={styles.txnIdText} selectable>
-            {transactionId || '(no transaction id)'}
-          </Text>
-        </View>
-      </View>
-
-      {/* Manual Call Button */}
+      {/* Call Logs API Button */}
       <TouchableOpacity
-        style={[styles.callApiButton, loading && styles.callApiButtonDisabled]}
-        onPress={callResultsApi}
-        disabled={loading}>
-        {loading ? (
+        style={[
+          styles.callApiButton,
+          (!webhookReceived || isLoadingLogs) &&
+            styles.callApiButtonDisabled,
+        ]}
+        onPress={callLogsApi}
+        disabled={!webhookReceived || isLoadingLogs}>
+        {isLoadingLogs ? (
           <View style={styles.loadingRow}>
             <ActivityIndicator size="small" color="#fff" />
-            <Text style={styles.callApiButtonText}>Calling API...</Text>
+            <Text style={styles.callApiButtonText}>
+              {' '}Calling Logs API...
+            </Text>
           </View>
         ) : (
-          <Text style={styles.callApiButtonText}>📬 Call Results API</Text>
+          <Text style={styles.callApiButtonText}>
+            {webhookReceived
+              ? '📋  Call Logs API'
+              : '📋  Logs API (waiting for webhook)'}
+          </Text>
         )}
       </TouchableOpacity>
 
-      {/* Result display */}
-      {called && !loading && (
+      {/* Logs error */}
+      {logsError && (
+        <View style={[styles.card, {borderColor: '#742a2a'}]}>
+          <Text style={[styles.cardTitle, {color: COLORS.error}]}>
+            Logs API Error
+          </Text>
+          <Text style={styles.errorText}>{logsError}</Text>
+          <TouchableOpacity
+            style={[styles.retryButton, {marginTop: 10}]}
+            onPress={callLogsApi}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Logs result */}
+      {logsResult?.result && (
         <>
-          {error && (
-            <View style={[styles.card, {borderColor: '#742a2a'}]}>
-              <Text style={[styles.cardTitle, {color: COLORS.error}]}>
-                Request Failed
-              </Text>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          )}
-          {result && (
-            <>
-              <View
+          <View
+            style={[
+              styles.statusBanner,
+              {
+                backgroundColor: logsStatusCfg.bg,
+                borderColor: logsStatusCfg.color,
+              },
+            ]}>
+            <Text style={styles.statusEmoji}>{logsStatusCfg.emoji}</Text>
+            <View style={styles.statusTextBlock}>
+              <Text
                 style={[
-                  styles.card,
-                  {borderColor: result.found ? COLORS.success : COLORS.warning},
+                  styles.statusLabel,
+                  {color: logsStatusCfg.color},
                 ]}>
-                <Text style={styles.cardTitle}>
-                  {result.found ? '✅ Webhook Data Found' : '⏳ No Data Yet'}
-                </Text>
-                <DetailRow label="Found" value={String(result.found)} />
-                {result.message && (
-                  <DetailRow label="Message" value={result.message} />
-                )}
-                {result.data?.status && (
-                  <DetailRow label="Status" value={result.data.status} />
-                )}
-              </View>
-              <CopyableJsonCard title="Webhook Result" data={result} />
-            </>
-          )}
+                {logsStatusCfg.label}
+              </Text>
+              <Text style={styles.statusRaw}>Logs API result</Text>
+            </View>
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Logs API Summary</Text>
+            <DetailRow
+              label="Transaction ID"
+              value={logsResult.result.transactionId ?? transactionId}
+              mono
+            />
+            <DetailRow
+              label="Application Status"
+              value={logsResult.result.applicationStatus ?? '—'}
+            />
+            <DetailRow
+              label="Modules"
+              value={`${logsResult.result.results?.length ?? 0} module(s)`}
+            />
+          </View>
+
+          {logsResult.result.results?.map((module, i) => {
+            const moduleName =
+              (module.moduleId as string) ??
+              (module.moduleName as string) ??
+              `Module ${i + 1}`;
+            return (
+              <CopyableJsonCard key={i} title={moduleName} data={module} />
+            );
+          })}
+
+          <CopyableJsonCard
+            title="Raw Logs API Response"
+            data={logsResult}
+          />
         </>
       )}
     </ScrollView>
@@ -780,5 +918,48 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.textSecondary,
     lineHeight: 18,
+  },
+  // New Flow button
+  newFlowBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: '#2d3151',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.accent,
+  },
+  newFlowBtnText: {
+    color: COLORS.accent,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  // Webhook Listener
+  webhookHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  webhookDotRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  webhookDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  refreshBtn: {
+    padding: 4,
+  },
+  refreshBtnText: {
+    fontSize: 18,
+  },
+  waitingText: {
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 4,
   },
 });
