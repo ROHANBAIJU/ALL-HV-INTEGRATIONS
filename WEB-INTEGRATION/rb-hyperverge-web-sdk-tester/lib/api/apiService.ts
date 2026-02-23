@@ -1,6 +1,6 @@
 /**
  * API Service — matches ApiService.ts from React Native and api_service.dart from Flutter
- * Handles token generation and webhook result polling
+ * Handles token generation, Output API, Logs API, and webhook result polling
  */
 
 import { ApiConfig } from '@/lib/config/apiConfig';
@@ -32,19 +32,71 @@ export interface TokenResponse {
   code?: string;
 }
 
-export interface WebhookResult {
+// ── Webhook — GET /api/webhook/results/:id ────────────────────────────────────
+// backend sends: { success, data: { transactionId, applicationStatus, eventType,
+//   eventTime, receivedAt, webhookRaw, outputApiData, logsApiData } }
+// 404: { success: false, error, message, tip }
+
+export interface WebhookData {
   transactionId: string;
-  workflowId?: string;
-  status?: string;
-  result?: Record<string, unknown>;
-  timestamp?: string;
+  applicationStatus?: string;
+  eventType?: string;
+  eventTime?: string;
   receivedAt?: string;
-  rawData?: Record<string, unknown>;
+  webhookRaw?: Record<string, unknown>;
+  outputApiData?: Record<string, unknown>;
+  logsApiData?: Record<string, unknown>;
 }
 
 export interface WebhookResponse {
   success: boolean;
-  data?: WebhookResult;
+  data?: WebhookData;
+  error?: string;
+  message?: string;
+  tip?: string;
+}
+
+// ── Output API — POST /api/results/output ─────────────────────────────────────
+
+export interface OutputApiRequest {
+  transactionId: string;
+  sendDebugInfo?: string;
+  sendReviewDetails?: string;
+}
+
+export interface OutputApiResult {
+  transactionId?: string;
+  status?: string;
+  flags?: string[];
+  userDetails?: Record<string, unknown>;
+  debugInfo?: Record<string, unknown>;
+  reviewDetails?: Record<string, unknown>;
+}
+
+export interface OutputApiResponse {
+  success: boolean;
+  status?: string;
+  statusCode?: number;
+  result?: OutputApiResult;
+  error?: string;
+  message?: string;
+}
+
+// ── Logs API — POST /api/results/logs ────────────────────────────────────────
+
+export interface LogsApiResult {
+  transactionId?: string;
+  applicationStatus?: string;
+  results?: unknown[];
+  flagsFound?: string[];
+  workflowDetails?: Record<string, unknown>;
+}
+
+export interface LogsApiResponse {
+  success: boolean;
+  status?: string;
+  statusCode?: number;
+  result?: LogsApiResult;
   error?: string;
   message?: string;
 }
@@ -87,7 +139,7 @@ export async function generateToken(request: TokenRequest): Promise<TokenRespons
 
 /**
  * GET /api/webhook/results/:transactionId
- * Poll for webhook result after SDK completes
+ * 404 → returns { success: false, message: 'Webhook not received yet' }
  */
 export async function getWebhookResults(transactionId: string): Promise<WebhookResponse> {
   const response = await fetch(
@@ -101,8 +153,48 @@ export async function getWebhookResults(transactionId: string): Promise<WebhookR
     }
   );
 
+  if (response.status === 404) {
+    return { success: false, message: 'Webhook not received yet' };
+  }
+
   const data = await response.json();
   return data as WebhookResponse;
+}
+
+/**
+ * POST /api/results/output
+ * Fetch Output API result for a completed verification
+ */
+export async function getOutputApiResults(request: OutputApiRequest): Promise<OutputApiResponse> {
+  const response = await fetch(`${ApiConfig.baseUrl}/api/results/output`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-platform': 'web',
+    },
+    body: JSON.stringify(request),
+  });
+
+  const data = await response.json();
+  return data as OutputApiResponse;
+}
+
+/**
+ * POST /api/results/logs
+ * Fetch Logs API result for a completed verification
+ */
+export async function getLogsApiResults(transactionId: string): Promise<LogsApiResponse> {
+  const response = await fetch(`${ApiConfig.baseUrl}/api/results/logs`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-platform': 'web',
+    },
+    body: JSON.stringify({ transactionId }),
+  });
+
+  const data = await response.json();
+  return data as LogsApiResponse;
 }
 
 /**

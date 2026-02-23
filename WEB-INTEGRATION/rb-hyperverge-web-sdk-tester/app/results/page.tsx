@@ -6,12 +6,15 @@ import {
   RefreshCw, ArrowLeft, Loader2, CheckCircle2, XCircle,
   Clock, UserX, AlertTriangle, Copy, Check
 } from 'lucide-react';
-import { getWebhookResults } from '@/lib/api/apiService';
+import {
+  getWebhookResults, getOutputApiResults, getLogsApiResults,
+} from '@/lib/api/apiService';
+import type { WebhookResponse, OutputApiResponse, LogsApiResponse } from '@/lib/api/apiService';
 import type { HyperKycResult } from '@/types/hyperkyc';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type Tab = 'sdk' | 'outputs' | 'webhook';
+type Tab = 'sdk' | 'output' | 'logs';
 
 interface SessionData {
   transactionId: string;
@@ -84,9 +87,20 @@ export default function ResultsDashboard() {
   const router = useRouter();
   const [session, setSession] = useState<SessionData | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('sdk');
-  const [webhookData, setWebhookData] = useState<Record<string, unknown> | null>(null);
+  // ── Output API state ──────────────────────────────────────────────────────
+  const [outputResult, setOutputResult] = useState<OutputApiResponse | null>(null);
+  const [outputLoading, setOutputLoading] = useState(false);
+  const [outputError, setOutputError] = useState('');
+
+  // ── Logs API / Webhook state ──────────────────────────────────────────────
+  const [webhookData, setWebhookData] = useState<WebhookResponse | null>(null);
   const [webhookLoading, setWebhookLoading] = useState(false);
   const [webhookError, setWebhookError] = useState('');
+  const [logsResult, setLogsResult] = useState<LogsApiResponse | null>(null);
+  const [logsLoading, setLogsLoading] = useState(false);
+  const [logsError, setLogsError] = useState('');
+
+  const webhookReceived = webhookData?.success === true && !!webhookData.data;
 
   // Load session from sessionStorage
   useEffect(() => {
@@ -96,17 +110,33 @@ export default function ResultsDashboard() {
     }
   }, []);
 
-  // Auto-fetch webhook results 800ms after mount (gives HyperVerge time to call back)
+  // Auto-fetch Output API after session loads
+  const fetchOutputApi = useCallback(async (txId: string) => {
+    setOutputLoading(true);
+    setOutputError('');
+    try {
+      const res = await getOutputApiResults({
+        transactionId: txId,
+        sendDebugInfo: 'yes',
+        sendReviewDetails: 'yes',
+      });
+      setOutputResult(res);
+      if (!res.success) setOutputError(res.message || res.error || 'Output API call failed');
+    } catch {
+      setOutputError('Failed to call Output API');
+    } finally {
+      setOutputLoading(false);
+    }
+  }, []);
+
+  // Auto-check webhook on mount
   const fetchWebhook = useCallback(async (txId: string) => {
     setWebhookLoading(true);
     setWebhookError('');
     try {
       const res = await getWebhookResults(txId);
-      if (res.success && res.data) {
-        setWebhookData(res.data as unknown as Record<string, unknown>);
-      } else {
-        setWebhookError(res.message || res.error || 'No webhook data yet');
-      }
+      setWebhookData(res);
+      if (!res.success) setWebhookError(res.message || res.error || 'No webhook data yet');
     } catch {
       setWebhookError('Failed to fetch webhook results');
     } finally {
@@ -114,11 +144,27 @@ export default function ResultsDashboard() {
     }
   }, []);
 
+  // Fetch Logs API
+  const fetchLogsApi = useCallback(async (txId: string) => {
+    setLogsLoading(true);
+    setLogsError('');
+    try {
+      const res = await getLogsApiResults(txId);
+      setLogsResult(res);
+      if (!res.success) setLogsError(res.message || res.error || 'Logs API call failed');
+    } catch {
+      setLogsError('Failed to call Logs API');
+    } finally {
+      setLogsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!session) return;
-    const timer = setTimeout(() => fetchWebhook(session.transactionId), 800);
-    return () => clearTimeout(timer);
-  }, [session, fetchWebhook]);
+    const t1 = setTimeout(() => fetchOutputApi(session.transactionId), 400);
+    const t2 = setTimeout(() => fetchWebhook(session.transactionId), 800);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [session, fetchOutputApi, fetchWebhook]);
 
   // ── Loading state ─────────────────────────────────────────────────────────
 
@@ -140,8 +186,8 @@ export default function ResultsDashboard() {
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'sdk', label: 'SDK Response' },
-    { id: 'outputs', label: 'Outputs API' },
-    { id: 'webhook', label: 'Webhooks' },
+    { id: 'output', label: 'Output API' },
+    { id: 'logs', label: 'Logs API' },
   ];
 
   return (
@@ -196,55 +242,173 @@ export default function ResultsDashboard() {
           </div>
         )}
 
-        {/* ── Outputs API Tab ── */}
-        {activeTab === 'outputs' && (
-          <div>
-            {sdkResult.details && Object.keys(sdkResult.details).length > 0 ? (
-              <JsonBlock data={sdkResult.details} label="Workflow Outputs" />
-            ) : (
-              <EmptyState icon={<CheckCircle2 size={32} style={{ color: 'var(--text-muted)' }} />} message="No output fields returned by this workflow" />
+        {/* ── Output API Tab ── */}
+        {activeTab === 'output' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {outputLoading && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: 13, padding: 16 }}>
+                <Loader2 size={14} className="animate-spin" /> Calling Output API…
+              </div>
+            )}
+
+            {!outputLoading && outputError && (
+              <div style={{ background: 'rgba(248,81,73,0.1)', border: '1px solid var(--red)', borderRadius: 8, padding: '12px 16px' }}>
+                <p style={{ color: 'var(--red)', fontWeight: 600, fontSize: 13, margin: '0 0 4px' }}>Output API Error</p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: 0 }}>{outputError}</p>
+              </div>
+            )}
+
+            {!outputLoading && outputResult?.result && (() => {
+              const r = outputResult.result;
+              const statusCfgOut = getStatusConfig(r.status);
+              const OutIcon = statusCfgOut.Icon;
+              return (
+                <>
+                  {/* Status badge */}
+                  <div style={{ background: statusCfgOut.bg, border: `1px solid ${statusCfgOut.color}`, borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <OutIcon size={20} style={{ color: statusCfgOut.color, flexShrink: 0 }} />
+                    <div>
+                      <p style={{ color: statusCfgOut.color, fontWeight: 700, fontSize: 15, margin: 0 }}>{statusCfgOut.label}</p>
+                      <p style={{ color: 'var(--text-muted)', fontSize: 11, margin: '2px 0 0', fontFamily: 'monospace' }}>{r.status}</p>
+                    </div>
+                  </div>
+
+                  {/* Flags */}
+                  {r.flags && r.flags.length > 0 && (
+                    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: '12px 16px' }}>
+                      <p style={{ color: 'var(--text-muted)', fontSize: 11, margin: '0 0 8px' }}>FLAGS</p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {r.flags.map(f => (
+                          <span key={f} style={{ background: 'rgba(210,153,34,0.15)', border: '1px solid var(--yellow)', borderRadius: 6, padding: '2px 8px', color: 'var(--yellow)', fontSize: 12 }}>{f}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* User details */}
+                  {r.userDetails && Object.keys(r.userDetails).length > 0 && (
+                    <JsonBlock data={r.userDetails} label="User Details" />
+                  )}
+
+                  {/* Review details */}
+                  {r.reviewDetails && Object.keys(r.reviewDetails).length > 0 && (
+                    <JsonBlock data={r.reviewDetails} label="Review Details" />
+                  )}
+
+                  {/* Debug info */}
+                  {r.debugInfo && Object.keys(r.debugInfo).length > 0 && (
+                    <JsonBlock data={r.debugInfo} label="Debug Info" />
+                  )}
+
+                  {/* Raw response */}
+                  <JsonBlock data={outputResult} label="Raw Output API Response" />
+                </>
+              );
+            })()}
+
+            {!outputLoading && !outputError && !outputResult?.result && (
+              <EmptyState icon={<CheckCircle2 size={32} style={{ color: 'var(--text-muted)' }} />} message="No result returned by Output API" />
             )}
           </div>
         )}
 
-        {/* ── Webhooks Tab ── */}
-        {activeTab === 'webhook' && (
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: 0 }}>
-                HyperVerge sends a webhook to your backend after verification completes.
-              </p>
+        {/* ── Logs API Tab ── */}
+        {activeTab === 'logs' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {/* Webhook status row */}
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span style={{
+                width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                background: webhookReceived ? 'var(--green)' : 'var(--yellow)',
+                boxShadow: webhookReceived ? '0 0 6px var(--green)' : '0 0 6px var(--yellow)',
+              }} />
+              <div style={{ flex: 1 }}>
+                <p style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 14, margin: 0 }}>
+                  {webhookReceived ? 'Webhook Received' : 'Waiting for Webhook'}
+                </p>
+                {webhookReceived && webhookData?.data && (
+                  <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '2px 0 0', fontFamily: 'monospace' }}>
+                    {webhookData.data.applicationStatus}
+                  </p>
+                )}
+                {!webhookReceived && (
+                  <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: '2px 0 0' }}>
+                    {webhookError || 'HyperVerge will call back your backend after verification.'}
+                  </p>
+                )}
+              </div>
               <button
                 onClick={() => fetchWebhook(transactionId)}
                 disabled={webhookLoading}
-                style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 12px', cursor: webhookLoading ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-secondary)', fontSize: 12 }}
+                style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: 8, padding: '5px 10px', cursor: webhookLoading ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: 'var(--text-secondary)', fontSize: 12 }}
               >
-                {webhookLoading
-                  ? <Loader2 size={12} className="animate-spin" />
-                  : <RefreshCw size={12} />}
-                Refresh
+                {webhookLoading ? <Loader2 size={11} className="animate-spin" /> : <RefreshCw size={11} />}
+                Check Again
               </button>
             </div>
 
-            {webhookLoading && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-muted)', fontSize: 13, padding: 16 }}>
-                <Loader2 size={14} className="animate-spin" /> Polling backend…
+            {/* Call Logs API button */}
+            <button
+              onClick={() => fetchLogsApi(transactionId)}
+              disabled={!webhookReceived || logsLoading}
+              style={{
+                background: webhookReceived ? 'var(--accent-purple)' : 'var(--bg-card)',
+                border: `1px solid ${webhookReceived ? 'var(--accent-purple)' : 'var(--border)'}`,
+                borderRadius: 10, padding: '12px 0', cursor: webhookReceived && !logsLoading ? 'pointer' : 'not-allowed',
+                color: webhookReceived ? '#fff' : 'var(--text-muted)',
+                fontWeight: 600, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              }}
+            >
+              {logsLoading ? <Loader2 size={14} className="animate-spin" /> : null}
+              {logsLoading ? 'Calling Logs API…' : webhookReceived ? 'Call Logs API' : 'Call Logs API (waiting for webhook)'}
+            </button>
+
+            {/* Logs error */}
+            {logsError && (
+              <div style={{ background: 'rgba(248,81,73,0.1)', border: '1px solid var(--red)', borderRadius: 8, padding: '12px 16px' }}>
+                <p style={{ color: 'var(--red)', fontWeight: 600, fontSize: 13, margin: '0 0 4px' }}>Logs API Error</p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: 0 }}>{logsError}</p>
               </div>
             )}
 
-            {!webhookLoading && webhookError && (
-              <div style={{ background: 'rgba(210,153,34,0.1)', border: '1px solid var(--yellow)', borderRadius: 8, padding: '14px 16px' }}>
-                <p style={{ color: 'var(--yellow)', fontWeight: 600, fontSize: 14, margin: '0 0 4px' }}>Webhook Pending</p>
-                <p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: 0 }}>{webhookError}</p>
-                <p style={{ color: 'var(--text-muted)', fontSize: 11, margin: '8px 0 0' }}>
-                  HyperVerge may not have sent the callback yet. Hit Refresh in a few seconds.
-                </p>
-              </div>
-            )}
+            {/* Logs result */}
+            {logsResult?.result && (() => {
+              const lr = logsResult.result!;
+              const logStatusCfg = getStatusConfig(lr.applicationStatus);
+              const LogIcon = logStatusCfg.Icon;
+              return (
+                <>
+                  <div style={{ background: logStatusCfg.bg, border: `1px solid ${logStatusCfg.color}`, borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <LogIcon size={20} style={{ color: logStatusCfg.color, flexShrink: 0 }} />
+                    <div>
+                      <p style={{ color: logStatusCfg.color, fontWeight: 700, fontSize: 15, margin: 0 }}>{logStatusCfg.label}</p>
+                      <p style={{ color: 'var(--text-muted)', fontSize: 11, margin: '2px 0 0', fontFamily: 'monospace' }}>{lr.applicationStatus}</p>
+                    </div>
+                  </div>
 
-            {!webhookLoading && webhookData && (
-              <JsonBlock data={webhookData} label="Webhook Payload (from backend storage)" />
-            )}
+                  {lr.flagsFound && lr.flagsFound.length > 0 && (
+                    <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: '12px 16px' }}>
+                      <p style={{ color: 'var(--text-muted)', fontSize: 11, margin: '0 0 8px' }}>FLAGS FOUND</p>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {lr.flagsFound.map(f => (
+                          <span key={f} style={{ background: 'rgba(210,153,34,0.15)', border: '1px solid var(--yellow)', borderRadius: 6, padding: '2px 8px', color: 'var(--yellow)', fontSize: 12 }}>{f}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {lr.results && lr.results.length > 0 && (
+                    <JsonBlock data={lr.results} label="Workflow Step Results" />
+                  )}
+
+                  {lr.workflowDetails && Object.keys(lr.workflowDetails).length > 0 && (
+                    <JsonBlock data={lr.workflowDetails} label="Workflow Details" />
+                  )}
+
+                  <JsonBlock data={logsResult} label="Raw Logs API Response" />
+                </>
+              );
+            })()}
           </div>
         )}
       </div>

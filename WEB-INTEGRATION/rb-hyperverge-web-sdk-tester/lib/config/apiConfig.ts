@@ -4,7 +4,7 @@
  */
 
 const DEV_BASE_URL = 'http://192.168.0.105:3000';
-const PROD_BASE_URL = 'https://unified-backend-for-all-sdks-d76nz9uok.vercel.app';
+const PROD_BASE_URL = 'https://unified-backend-for-all-sdks-p1bb4tasc.vercel.app';
 
 class ApiConfigClass {
   // Web app defaults to PROD — DEV backend runs on same port as Next.js (3000).
