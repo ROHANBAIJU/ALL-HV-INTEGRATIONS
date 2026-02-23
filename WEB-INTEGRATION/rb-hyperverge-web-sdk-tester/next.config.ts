@@ -36,7 +36,7 @@ const CLOUDFLARE   = "https://www.cloudflare.com";
 const IPIFY        = "https://api.ipify.org";
 const CLOUDFRONT   = "https://*.cloudfront.net";
 const SENTRY       = "https://*.sentry.io https://*.ingest.us.sentry.io https://*.ingest.sentry.io";
-const BACKEND_PROD = "https://unified-backend-for-all-sdks-d76nz9uok.vercel.app";
+const BACKEND_PROD = "https://unified-backend-for-all-sdks-p1bb4tasc.vercel.app";
 const BACKEND_DEV  = "http://192.168.0.105:3000 http://localhost:3000";
 
 // Build per-directive strings
