@@ -24,7 +24,7 @@ android {
         buildConfigField("String", "DEV_BASE_URL", "\"http://192.168.0.105:3000\"")
 
         // Production backend URL - Vercel deployment
-        buildConfigField("String", "PROD_BASE_URL", "\"https://unified-backend-for-all-sdks-d76nz9uok.vercel.app\"")
+        buildConfigField("String", "PROD_BASE_URL", "\"https://unified-backend-for-all-sdks-p1bb4tasc.vercel.app\"")
 
         // Default active URL (app starts in Development mode; switchable at runtime)
         buildConfigField("String", "API_BASE_URL", "\"http://192.168.0.105:3000\"")
@@ -38,7 +38,7 @@ android {
                 "proguard-rules.pro"
             )
             // Release builds default to Production
-            buildConfigField("String", "API_BASE_URL", "\"https://unified-backend-for-all-sdks-d76nz9uok.vercel.app\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://unified-backend-for-all-sdks-p1bb4tasc.vercel.app\"")
         }
         debug {
             isMinifyEnabled = false
@@ -47,12 +47,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
 
     buildFeatures {

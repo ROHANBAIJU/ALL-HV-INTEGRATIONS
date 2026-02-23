@@ -29,9 +29,9 @@ import com.rb.sdktester.network.OutputApiResponse
 import com.rb.sdktester.network.WebhookQueryResponse
 import com.rb.sdktester.ui.theme.*
 import kotlinx.coroutines.launch
-import java.time.OffsetDateTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 /**
  * Results Dashboard Screen
@@ -922,19 +922,27 @@ private fun EmptyStateCard(
 // =============================================================================
 
 /**
- * Parses an ISO-8601 UTC timestamp string and returns a local-time string
- * with the UTC offset, e.g. "2025-01-15 22:04:17 +05:30"
+ * Parses an ISO-8601 UTC timestamp string and returns a local-time string,
+ * e.g. "2025-01-15 22:04:17 IST" — always safe, no java.time required.
  */
 private fun formatUtcToLocal(utcString: String): String {
-    return try {
-        val odt = OffsetDateTime.parse(utcString)
-        val localZone = ZoneId.systemDefault()
-        val localOdt = odt.atZoneSameInstant(localZone).toOffsetDateTime()
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss xxx")
-        localOdt.format(formatter)
-    } catch (e: Exception) {
-        utcString
+    val outputFmt = SimpleDateFormat("yyyy-MM-dd HH:mm:ss z", Locale.US)
+    outputFmt.timeZone = TimeZone.getDefault()
+    val candidates = listOf(
+        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+        "yyyy-MM-dd'T'HH:mm:ss'Z'",
+        "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+        "yyyy-MM-dd'T'HH:mm:ssXXX"
+    )
+    for (pattern in candidates) {
+        try {
+            val fmt = SimpleDateFormat(pattern, Locale.US)
+            fmt.timeZone = TimeZone.getTimeZone("UTC")
+            val date = fmt.parse(utcString) ?: continue
+            return outputFmt.format(date)
+        } catch (_: Exception) { }
     }
+    return utcString
 }
 
 private fun formatJson(data: Map<String, Any>): String {
