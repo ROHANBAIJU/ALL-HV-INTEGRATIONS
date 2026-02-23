@@ -1,0 +1,1834 @@
+Web SDK Changelog
+The following document lists the Web SDK changelog details:
+
+10.5.0 [12 Feb 2026]
+Added support to do Subresource Integrity checks for script files loaded from external CDNs in SDK.
+Added support for new intial loader configurable using setInitialLoaderConfig setter function
+Added support to show responsive modal for API and web bundle module when responsivenss is enabled in the workflow
+10.4.0 [11 Feb 2026]
+SDK Sizes:
+
+native webSDK - 458 KB
+webCoreSDK - 459 KB
+Added
+Added support for responseHandler v2 for face module to handle controllable errors via workflow config
+Fixed
+Fixed an issue where the webview redirection flow (openAsPopup: false) failed to resume the workflow on the first redirect when CPR was enabled
+Enhancement
+[WebCore] Added logic to prevent downloading unnecessary additional scripts in webcore mode
+10.3.0 [5th Feb 2026]
+SDK Sizes:
+
+native webSDK - 457 KB
+webCoreSDK - 458 KB
+Added
+Added additional metrics in selfie capture screen, to understand the user behavior
+Add support for customisation of retake message card colour via uiConfig using retakeMessageCardBackgroundColor key
+Fixed
+Fix attempts key for selfie and document modules to use moduleId as a part of the key
+10.2.0 [27 Jan 2026]
+SDK Sizes:
+
+native webSDK - 446 KB
+webCoreSDK - 447 KB
+Added
+Add support for backend video recording for selfie module when enableBackendVideoRecording key is set as true in the appId remote config.
+Enhancement
+Improved error logging for document upload failures with proper error message.
+Updated internet connectivity check by replacing the 30 MB speed-test download with the native navigator.onLine API and a 1 KB fallback fetch. This approach uses existing downlink data for analytics instead of a large-file download.
+Fixed
+Handled a crash, which happens when the device/browser does not have access to indexDB. Now the SDK will continue to work as expected even if indexDB is not accessible.
+Fixed an issue where the back button was incorrectly displayed on the first screen of the document module on mobile devices when QR flow was enabled. The back button now only appears on desktop/PC devices when QR flow is enabled, preventing unintended navigation to the QR choice screen on mobile.
+10.1.0 [16 Jan 2026]
+SDK Sizes:
+
+native webSDK - 446 KB
+webCoreSDK - 447 KB
+Enhancement
+Updated the primary source as public CDN for fetching the assets for face detection v2 model. HV-CDN will act as the fallback source.
+Added the face threshold for back camera in selfie module for face detection V2 model.
+10.0.0 [9 Jan 2026]
+
+Important
+Action Required: While migrating to v10.0.0, you must whitelist https://*.edge.hyperverge.co in your Content Security Policy (CSP) directives. See the Migration Guide for detailed instructions.
+Added
+Introduced Real-time Events Phase 2 with directive-driven lifecycle events at application, step, and substep boundaries.
+New schema version 2.0.0 with structured payload containing common and properties objects.
+Support for workflow_started and workflow_completed events via directives.application configuration.
+Support for step_started, step_ended, substep_started and substep_ended events via directives.steps configuration.
+Migrated image and Lottie asset base URLs from cloudFrontBaseUrl(https://hv-web-sdk-cdn.hyperverge.co) to new edge CDN endpoint: https://assets.edge.hyperverge.co/sdk/default.
+Fixed
+Fixed a race condition where module PUT API calls could be processed after the final PUT API call, causing end_state_reached errors. The fix ensures that all module PUT API calls are fully processed before the final PUT API is called.
+9.18.0 [3 Dec 2025]
+SDK Sizes:
+
+native webSDK - 443 KB
+webCoreSDK - 444 KB
+Added
+Introduced support for webBundle modules
+Enhanced
+Refined the UI for the start and recording screens in the VideoStatement V2 module, offering a more consistent and user-friendly experience
+image.png image.png image.png image.png
+
+Updated dependent scripts to load primarily from the public CDN (cdnjs.cloudflare.com), with an automatic fallback to WebSDK's private CDN (hv-web-sdk-cdn.hyperverge.co) in case of load failures
+Fixed
+Resolved an issue where the loader screen remained stuck indefinitely if the lottie loader package failed to fully download during initialization
+9.17.2 [27 November 2025]
+SDK Sizes:
+
+native webSDK - 442 KB
+webCoreSDK - 443 KB
+Enhancement
+The Start Recording button will now appear for every attempt in the VideoStatement module. Previously, the video auto-started for all attempts except the first
+Added a new endStateDisplayDuration key (in ms) in the API module to control how long the end-state Lottie animation is displayed. Defaults to 2 seconds if not specified
+Fixed
+Added fallback for file.arrayBuffer in browsers where it is not supported
+Fixed timer timing issue in videoStatement where the countdown had a 1-second delay at start and end
+Resolved a behavior, where if the previousStep of any module resolves to a webview module, then the previousStep gets evaluated twice, leading to the flow landing on an unintended module rather than the webview module itself. Now, the flow will take the user to webview module correctly
+9.17.1 [19 November 2025]
+SDK Sizes:
+
+native webSDK - 442 KB
+webCoreSDK - 443 KB
+Enhancement
+Added enable key support in workflow, that helps enabling and disabling faceDetection check in VideoStatement V2 module
+Introduced new troubleshooting screens for permission-denied scenarios in the VideoStatement module
+Fixed
+Fixed an issue where granting camera permission during the VideoStatement module could incorrectly redirect users to the selfie capture screen. This occurred due to an unremoved event listener from a previous module, which has now been properly cleaned up after completion
+Fixed an issue on builderSDK where workflows with CPR enabled would load infinitely
+9.17.0 [6 Nov 2025]
+SDK Sizes:
+
+native webSDK - 921 KB
+webCoreSDK - 961 KB
+Added
+
+Introduced transliteration.enable and transliteration.matchText keys to support using a transliterated version of the groundText in the Speech to Text Match API when the original text is in a non-English language
+Added payload encryption support for convert API in Video Statement V2 module
+Added support to customize the text color and style of the alert box in the selfie module
+Fixed
+
+Fixed an issue causing the SDK to throw an internal server error when retrying failed API calls with payload encryption enabled
+Fixed an UI bug, where the branding text is not properly aligned in the retake screen of Video Statement V2 Module
+Fixed a case where the Lottie for the API processing screen in Video Statement V2 Module is fetched from S3 instead of CDN if prefetched is not used
+9.16.1 [23 Oct 2025]
+Updated
+Set application status to errorin SDK Callback Response if the finishTransaction API call fails. Previously, the actual application status was sent
+9.16.0 [14 Oct 2025]
+Added
+Added support to reset module state based on step ID
+Fixed
+Recompute the base url again before the FinishTransaction API to make sure the FinishTransaction API reaches the correct regional deployment
+9.15.10 [26 Sept 2025]
+Fixed an issue where the SDK loaded indefinitely if the user denied location permission while setUseLocation was set to true
+
+Fixed 'Webcam is not loaded yet' error that occurred when the web page was reloaded on the capture screen
+
+9.15.9 [22 Sept 2025]
+SDK Sizes:
+
+native webSDK - 894 KB
+
+webCoreSDK - 934 KB
+
+Enhanced
+
+Added internal retries for finishTransaction call failure due to network errors
+Fixed
+
+WebCore: Resolved side based attempts count not being sent in document module in webcore mode
+9.15.8 [18 Sept 2025]
+SDK Sizes:
+
+native webSDK - 889 KB
+webCoreSDK - 929 KB
+Fixed
+Resolved runtime errors caused by device incompatibility during face model v2 initialization by adding robust fallback mechanism to face model v1
+9.15.7 [16 Sept 2025]
+Enhancement
+Added Payload encryption support for Video Statement V2 module APIS — liveness, faceMatch, speechToTextMatch, and logVideoStatement.
+Added signature validation support for videoUpload API in Video Statement V2 module. a is used by default instead of the wide-angle lens
+WebCore: Exposed hideTopBar key as part of webView module properties
+This can be used to configure the behaviour of top bar of webView module to enable full screen display of a webApp.
+Fixed
+Fixed API loader not appearing for sometime issue
+9.15.6 [10 Sept 2025]
+SDK Sizes:
+
+native webSDK - 883 KB
+webCoreSDK - 922 KB
+Added
+
+Introduced a countdown timer in the Video Statement V2 module to enhance the recording experience by giving users a clear visual cue before and during recording
+image.png
+
+Updates
+
+Remove https://jsonip.com/ API for fetching IP
+Uploaded assets from https://cdnjs.cloudflare.com to internal S3 bucket. Reducing the dependency on an external CDN for fetching resources
+9.15.5 [8 Sept 2025]
+SDK Sizes:
+
+native webSDK - 882 KB
+webCoreSDK - 921 KB
+Fixed
+Fixed missing webview start event tracking in webcore mode. The webview_started event is now properly tracked in both regular websdk and webcore modes for consistent session replays
+Fixed issue where last module data was being cleared during session refresh operations
+Internal changes
+Updated session recorder library to v1.1.1 for improved analytics
+9.15.4 [01 Sept 2025]
+SDK Sizes:
+
+native webSDK - 891 KB
+webCoreSDK - 932 KB
+Added
+Added VKYC support for webCore
+Fixed
+Fixed an issue where the real-time events were not triggered when the application reached an end state via a condition
+9.15.3 [28 Aug 2025]
+SDK Sizes:
+
+native webSDK - 891 KB
+webCoreSDK - 931 KB
+Enhancement
+Included the correct file type extension in the SKYC video filename
+Added support to customise the error failure messages for Quality checks failure for the liveness api in SKYC flow
+Fixed
+Fixed an issue where the CPR PUT transaction API returns Unauthorised error, when the api call gets aborted
+9.15.2 [18 Aug 2025]
+SDK Sizes:
+
+native webSDK - 890 KB
+webCoreSDK - 929 KB
+Fixed
+Resolved an issue where the supported countries list was not scrollable when many countries were available in the workflow
+
+Fixed an issue where the spinner date picker component in Vue.js integrations was not rendered due to its tag being undefined, which caused the associated button to remain disabled
+
+9.15.1 [7 Aug 2025]
+SDK Sizes:
+
+native webSDK - 890 KB
+webCoreSDK - 929 KB
+Fixed
+Resolved an issue where the iFrame CSP failure fallback page was incorrectly shown for all CSP failures. It will now be triggered only for genuine iFrame-related CSP failures
+Fixed a crash that occurred before the face capture step when appId was not configured and localStorage was unavailable on the device
+9.15.0 [5 Aug 2025]
+SDK Sizes:
+
+native webSDK - 889 KB
+webCoreSDK - 929 KB
+Enhancement
+Integrated a new face detector model in the SDK to enable additional quality checks, including detection of multiple faces, face tilt, and face centering, which were not supported by the previous model.
+9.14.0 [24 July 2025]
+Fixed
+Fixed an issue where injection results are falsely marked as spoof on bright/dark solid backgrounds
+
+SDK Sizes
+
+native webSDK - 861 KB
+webCoreSDK - 901 KB
+9.13.0 [23 July 2025]
+Added
+Added support for workflowVersion validation in cross-platform resume flow
+If CPR is enabled and workflowVersion mismatch is detected in the saved CPR state, correct workflow config version is fetched to continue journey
+Fixed
+Fixed an issue where QR screen not showing when camera is unavailable and Get Started landing page is present in the flow
+Fixed an issue where the Lottie color was not updated, when setInitialLoaderColor setter function is used
+9.12.0 [07 July 2025]
+Added
+Added support to emit custom events from session recorder when webview module starts and ends.
+Added Payload Encryption/Decryption support for CPR APIs and StartTransaction API.
+Fixed
+Resolved an issue causing signature validation failures on GET requests.
+Fixed issue of wrong url getting cached as lottie leading to random text getting displayed instead of a lottie loader.
+9.11.1 [28 June 2025]
+Fixed
+
+Fixed branding (Powered By HyperVerge) appearing for a brief amount of time on initial loader screen even when disabled.
+Fixed default lottie animation appearing on subsequent launches after the initial launch.
+9.11.0 [22 June 2025]
+Added
+Added support for authToken-only initialisation, where workflowId and transactionId are extracted from the token payload
+9.10.0 [19 June 2025]
+Added
+Added payloadEncryption support for OCR
+WebCore: Added zoomByDefault property support for face module
+Fixed
+Fixed UI/UX issue with network handler modal in few bigger devices
+Fixed an issue where custom text config for one API module was affecting other API modules that did not have custom text config
+9.9.1 [13 June 2025]
+Changed
+Added support for customising text colour in the Country Module and Country Picker screens using the descriptionTextColor key in uiConfig
+Fixed
+Fixed an issue where the Module Ended Event for Webview module was triggered before evaluating module variables
+9.9.0 [6 June 2025]
+Fixed
+Fixed an issue where intermediate condition IDs were missing from the executionPath in put-transaction-state calls. Now, all condition IDs and the final module ID are included to ensure an accurate session resume
+WebCore: Added missed retryIfFaceNotPresent, maxAttemptsForFaceNotPresent properties and an additional livenessOnMaxFaceNotPresent to faceConfig
+9.8.0 [27 May 2025]
+Added support for the session recorder feature to record users' sessions based on enableSessionRecording key in the workflow
+If the key enableSessionRecording is set as true in the workflow, users' sessions will be recorded
+Added initializing_session_recorder_sdk, failed_to_start_session_recording_sdk, stopping_session_recorder_sdk, session_recorder_sdk_not_started, failed_to_stop_session_recording_sdk events for tracking session recorder behaviour
+Whitelisted all session recorder-related events for webCore
+Added sessionRecorder tag to Sentry errors from the session recorder
+9.7.1 [26 May 2025]
+Module Execution Path Handling
+The SDK now computes the next module to be executed.
+The corresponding moduleId is included in the executionPath field of the PUT /transaction-state API call
+Flag Computation Logic (Aligned with Mobile SDK)
+Previous Behavior
+
+If summary.details was empty, null, or undefined:
+The SDK would fallback to using the fallbackPath from the API response
+If summary.details had entries:
+Those entries were directly added to the flags array
+Updated Behavior
+
+If summary.details is an empty array:
+Nothing is added to the flags array
+The fallbackPath is not checked
+If summary.details has entries:
+These entries are added to the flags array
+If summary.details is null or undefined:
+The SDK will check and use the fallbackPath
+9.7.0 [16 May 2025]
+SDK size
+native webSDK - 507 KB
+builderSDK - 512 KB
+webCoreSDK - 532 KB
+native - 532 KB
+hunter - 535 KB
+Added
+Added support for real-time event when a step ends in a workflow
+Introduced support for a new configuration key: stepId for the module-level properties.
+Introduced step_ended event that gets triggered when a step is completed in the workflow
+Event Listeners can be registered via HyperKYCModule.addEventListener() & removed via HyperKYCModule.removeAllEventListeners()
+Step Ended Event Triggered analytics event will be triggered after the event is sent via registered event listeners.
+Enhancement
+Added support for name at module-level properties
+9.6.1 [14 May 2025]
+SDK size
+native webSDK - 515 KB
+builderSDK - 519 KB
+webCoreSDK - 542 KB
+Enhancement
+Exit the sdk flow with error if launched in unsecure mode
+Fixed
+Fixed an issue where the SDK crashes when the SDK was launched after camera permission was denied
+9.6.0 [8 May 2025]
+Added
+Optimised SDK load time to display the 1st screen
+Optimised the number of blocking scripts for a user session based on the workflow and the SDK mode
+Fetching workflow and other configs from cloudfront distribution
+SDK will not be able to fetch these configs if https://config-cdn.hyperverge.co or https://*.hyperverge.co is not whitelisted in the CSP headers
+Added logs to monitor 1st screen load time
+Added support to expose the label of the selected value in dropdown components of the dynamic form module. It can now be accessed using {moduleId}.{componentId}.label
+9.5.0 [7 May 2025]
+Added
+Introduced support for a new configuration key: eventMetadata for the module-level properties.
+Added support for sending metadata (eventMetadata property added to the module) to Module Ended analytics event
+Added support for sending superModuleId, superModuleType, mappingId to Module Started and Module Ended analytics event
+Enhancement
+If executionPath is not received from the result of get transaction state api call , then assign moduleExecutionOrder from the result for execution path. This handles cases where a user started with an older SDK version (which didn't send executionPath to CPR APIs) and then resumed with a newer version. If executionPath isn't available, we'll use moduleExecutionOrder instead
+9.4.1 [6 May 2025]
+SDK size
+native webSDK - 796 KB
+builderSDK - 801 KB
+webCoreSDK - 834 KB
+Enhancement
+Integrated networkWrapper for the Face Finder model API. This enables the network retry screen to appear when a network error occurs
+WebCore: Added analytics event for face & doc module when the callback fails to trigger if the wrapper crashes.
+WebCore: Added interface to get module info for foreground/background analytics call
+9.4.0 [30 Apr 2025]
+SDK size
+native webSDK - 796 KB
+builderSDK - 800 KB
+webCoreSDK - 834 KB
+Added
+Added support for payload encryption for child modules
+Added cache-busting to force a fresh fetch for workflow, UI, text, default and appId configs
+WebCore: Added support for showCloseIcon in workflow config properties which will display the close icon on all screens in webCore mode and native screens in MobileSDKs
+Enhancement
+Updated network handler UI
+Fixed
+Fixed an issue where the back navigation does not takes the user to country module/QR choice screen, if condition is the first step after the countries module
+WebCore: Fixed resetIsActivityRecreated JSInterface not found crash on older android SDK versions
+Fixed UI styles where Proceed on Mobile and Proceed here texts are left aligned on some Safari browsers
+9.3.2 [27 Apr 2025]
+SDK size
+native webSDK - 764 KB
+builderSDK - 768 KB
+webCoreSDK - 800 KB
+Changed
+Introduced a default public key fallback mechanism in case the payload encryption public key is not fetched
+9.3.1 [24 Apr 2025]
+SDK size
+native webSDK - 764 KB
+builderSDK - 768 KB
+webCoreSDK - 800 KB
+Enhancement
+Call startTransaction API after CPR Get Transaction state API call to ensure journeyId from CPR GET Transaction API call is sent in start transaction and Send executionPath and evaluatedConditionalVariables in CPR PUT API Call
+Changed
+Introduced support for a new configuration key: backNavigationVersion. When set to 2, the back button behavior is updated to remove data for all intermediate modules up to the latest occurrence of the current module, rather than reverting to its first occurrence
+Example:
+If the user navigates through modules in the order: m0 → m1 → m2 → m3 → m4 → m5 → m1 → m7,
+Clicking the back button on m7 will now retain the entire path up to the latest m1 (m0 → m1 → m2 → m3 → m4 → m5 → m1), instead of resetting to the first m1 (m0 → m1)
+9.3.0 [16th Apr 2025]
+SDK Sizes
+native webSDK - 761 KB
+builderSDK - 765 KB
+webCoreSDK - 797 KB
+Added
+Implemented parallel session check in cross-platform workflows to prevent concurrent sessions and avoid state overrides
+9.2.2 [9 Apr 2025]
+SDK Sizes
+native webSDK - 747 KB
+builderSDK - 751 KB
+webCoreSDK - 781 KB
+Added
+Added MetaBase logs for the video statement module, tracking the following metrics
+Video processing time
+Video submission mode (user/auto)
+Statement type (code/text)
+Permission status
+Added custom breadcrumbs for all sentry errors to enable quick debugging
+WebCore: Added exitOnCancel support
+Bug Fixes
+When the SDK is invoked with no network connection, an internet issue screen was displayed. Upon internet reconnection, clicking the retry button failed to restart the flow. Resolved the issue by bypassing CORS whitelist checks for the following files
+Workflow
+Text config
+UI config
+Default config
+App ID config
+Countries.json
+Fixed text component onChange is not triggered when the text is cut on mobile devices.
+9.2.1 [28 Mar 2025]
+Added
+[WebCore] Added support for payload encryption and decryption for multipart request body (document capture module)
+Exposed assistiveCapture key and added logics to retrieve and stringify barcodeData in WebCore mode of the SDK.
+Fixed
+[WebCore] Fixed NFC flow getting stuck in the end by swapping the condition in the if check to ensure the isURL method executes only for doc & face modules
+9.2.0 [20 Mar 2025]
+Added
+Added support for skipCPRPut feature
+Support to measure web vitals for screens in selfie capture screen , landing page and QR redirection related screens
+Added unit tests and integration for payload encryption
+Added support to override document name and reading barcode property via documentsOverrides
+Changed
+Introduced enableBipaCompliance to ensure the getConsent api for BIPA compilance is called only for workflows that need to be bipaCompliant
+Fixed
+Resolved an issue where retrying a CPR PUT call after a network error resulted in an "Unauthorized Request" error instead of continuing the flow
+Fixed a bug where some CPR PUT calls were not retried and were lost when a network error occurred. Now, all failed PUT calls will be properly retried as expected
+Fixed an issue where, when showPermissionsScreen was set to false and the user declined camera permissions, the end status was incorrectly sent as user_cancelled instead of error
+Fixed an issue where the faceFinder modal was not fetched properly from the S3 fallback when Cloudflare failed
+9.1.0 [11 Mar 2025]
+Added
+Optimized SDK load times when prefetch is enabled by prefetching ipAddress, default and appid configs
+Skipped camera present check in webCore mode
+Whitelisted prefetch related events in webCore mode
+Ensured that the Chips component in the sdk is not affected by external styles set from client sites
+9.0.0 [7 Mar 2025]
+Added
+Added support to prefetch face finder for selfie module.
+Migrated assets from S3 to Cloudflare CDN with a fallback to S3
+Added support to prefetch assets from Cloudflare CDN with a fallback to S3
+Changed
+When only one country is available in the countries module, the SDK will trigger the start transaction API immediately after fetching the workflow, before validating the inputs
+Refined SDK error message of input validation failure
+Fixed
+Fixed an issue, where SDK flow does not end when text config is not fetchable
+[WebCore] Fix vsv2 module resulted in an error because of the webRTC protocol check
+8.14.2 [05 Mar 2025]
+Added
+Added Received User Cancelled From Webview In iFrame , Response Received From Webview In iFrame , iFrame Closed By SDK , Init Message Sent to Webview In iFrame , Response Received From Webview In Cookies events for tracking user behaviour .
+Enabled Network Handler for VideoStatement module
+Stopped sending unblocking errors that are resolved in new SDK versions to sentry to avoid using up the quota
+[WebCore] Added support to inject sdk.installedApps which will be sent via webCore mode
+[WebCore] Added vsv2 support
+Changed
+In editBranding mode, the Builder SDK will now display a loader instead of opening the WebView module when accessed in the builder.
+Fixed
+[WebCore] Fixed android low memory looping issue
+8.14.1 [21 Feb 2025]
+Added
+Included manually_approved and manually_declined as valid end states in SDK
+Added the following events in the Selfie module to track user conversion:
+RetakeScreenShown
+Back Button Pressed On Face Capture Screen
+Time Taken To Show Camera Stream
+Average Time Taken To Detect Image By Face Model In Mobile
+Average Time Taken To Detect Image By Face Model In PC
+Average Time Taken To Detect Image By Face Model In Mobile
+First Valid Face Detected
+Changed
+If a transaction has already reached an end state, restarting it with the same data will skip the FinishTransaction call. The SDK callback will now return status: <status of previous journey>, details: {}, and transactionAlreadyProcessed: true in such cases
+Resolved an issue where the flow would load indefinitely as the user resumed from a child module after a failure. Now, the child module ID is sent in the PUT call after the parent module is completed and before sending the parent module data, instead of being the last entry in moduleExecutionOrder
+Fixed
+Fixed inconsistencies in form module component's behavior
+Fixed issue where validation is added for dropdown component and when empty value is selected, then user have to click outside to enable the component again
+When required property of file component is reloaded and if it is yes, then isValid is set to no straight away. Now the presence of file is checked before setting isValid in version 2
+isValid property of spinner component, is set based on required and the selected value. Previously it was set only based on selected value
+Added option to reload required property of OTP block
+Fixed capture button image not being loaded when prefetch is enabled
+WebCore Fixed attemptsCount returning empty string for face module
+8.14.0 [18 Feb 2025]
+Added
+Supports URL injection for webviewUIState in webCore mode
+Added default query params for webCore mode
+Added support for payload encryption and decryption for multipart request body (primarily selfie module)
+Added unit tests for PDF preview using PDF-JS library
+Added data-temp-id attribute to form components to maintain unique key for every component
+Changed
+Updated the video MIME type to match the format used for video generation in the liveness module. Previously, it was hardcoded to MP4
+Fixed
+Fixed injection issue with nfcAuthentication inside nfc module
+Fixed an issue where stylesheets were not attached to the DOM when both styles and stylesheets were present in a dynamicFormV2 module
+Fixed exiting NFC module on workflow error
+8.13.4 [6 Feb 2025]
+Added
+Integrated PDF-JS library to display the PDF files securely(preventing XSS attacks) on the document moduleIf the PDF-JS library is not supported on the browser, SDK falls back to the default PDF viewer
+Added debug logs for the response received from the iframe and popup WebView, with masking applied
+Fixed
+Fixed issue where signature validation fails for /convert API
+8.13.3 [30 Jan 2025]
+Added
+Added new key extractAudioFromVideo in videoStatement, that will now use the video to extract the audio instead of using audio stream, to improve the efficiency
+Changed
+Changed the processing screen of the videoStatement module
+Previously sentry events were sent for external IP related api failures. Now, sentry events won't be sent for such instances
+Delete data from Firebase real-time DB on session completion of QR flow.
+Fixed
+Fixed an issue where clicking on back button on selfie module/doc module did not take the user to QR choice screen, if enabled
+Extract the module variables of the previous flow from the GET call and store it in moduleVariablesMap for current flow
+8.13.2 [23 Jan 2025]
+Added
+Added Camera toggle feature in face module
+Added Signature validation for CPR Apis.
+Support to get contributed moduleIds and superModuleIds and include them in the finishTransaction API call when a condition leads to an endState.
+Added support for text color, font, font size, alignment, font weight for title and hint for api module
+Changed
+Give precedency for ${id}_${subType} over subType for textConfig in face module.
+When the capture button is clicked on the selfie module, the logic has been updated. Previously, the cropped face and full image were extracted directly from the video stream at the time of capture. Now, the updated approach saves the last processed valid frame (as detected by the face detector) and uses this frame for computing the cropped face and full image
+Fixed
+Resolved SDK screen alignment issues on tablet and iPad devices in landscape mode.
+[WebCore] Fix issue where duplicate authorization keys were sent in request headers of liveness and ocr API calls
+[WebCore] Fix issue where WebCore <> WebSDK signature verification logic failed due to undefined transactionID
+[WebCore] Fix issue where custom headers were not sent to native document module
+8.13.1 [16 Jan 2025]
+Changed
+Updated instructions on the Face capture consent screen image
+
+Added logs to track results being sent back to the laptop from mobile in QR redirection flow
+
+8.13.0 [9 Jan 2025]
+Added
+Added Support for payload encryption and decryption of api from workflow
+Changed
+Hide "powered by hyperverge" in the footer when country selected is USA
+When server-side resume workflow is enabled and exitOnEndStates is defined in the workflow, then send the array of exitOnEndStates in the finish transaction request body to disallow overiding of application status
+Fixed
+Update the ipv6 regexp to find the ipaddress even if it is shorthand format
+Use same journeyId that is generated before redirection, even after returning back to webSDK in redirection based flows
+Added support to enabled key to checkbox component in dynamicForms, that was missing. Now setting enabled key to no will make the checkbox component non-interactable.
+Resolved an issue where clicking the back button on the document capture screen redirected users to the previous module instead of the instruction screen, when allowUpload was enabled, and the capture option was selected
+Fixed an issue where on doc capture while using override property, for samsung devices we were choosing wide angle camera instead of main camera
+[WebCore] Fixed an issue where the FT call was not happening when the flow ended with "Device is rooted" error
+8.12.1 [2 Jan 2025]
+Added
+Get consent from the user before face capture for BIPA Compliance
+8.12.0 [31 Dec 2024]
+Added
+Added events to track QR code scanning time
+Added resolved conditionalVariables to PUT call in hunter mode
+Added isHunterMode : true to data.queryParams for webview in hunter mode
+Added support for Cross-platform Resume Authentication
+Fixed
+Resolved an issue where the nextStep was assigned an end state (e.g., auto_approved, auto_declined, etc.) for the document module, causing the flow to end prematurely without completing the document capture step
+8.11.5 [24 Dec 2024]
+Added
+Added support to fetch font stylesheets from UI config
+[WebCore] Added support to send workflowVersion in all API headers
+Fixed
+[WebCore] Fixed an issue where conditionalVariables as perviousStep was not effective
+[WebCore] Fixed an issue where child API calls with multipart image data failed
+Changed
+[WebCore] Removed uniqueId from liveness and OCR call headers for security reasons
+8.11.4 [23 Dec 2024]
+Added
+Added support to use full width and height for dynamicFormV2 module when useFullAvailableWidth and useFullAvailableHeight are set to true in module properties
+Added support to hide the capture button on the document module instruction screen when allowCapture is set to false in the module properties
+Fixed
+Fixed an issue where some analytics events were intermittently not sent at the end of the workflow
+8.11.3 [16 Dec 2024]
+Fixed
+Fixed an issue where the close button in troubleshooting screen in hypersnap was not closing the screen
+Enhanced error handling for IndexedDB failures to ensure seamless flow continuity and uninterrupted execution of the FinishTransaction call.
+8.11.2 [12 Dec 2024]
+Added
+Send sdkVersion , madeFrom , device , journeyId , workflowId , moduleId , browser , browserVersion by default in queryparams to webview module
+Resolved type conversion to string during injection in dynamicFormV2 module, preserving original variable types
+Updated trackHVEvent to include moduleName and conditionName under the moduleName key, and superModuleType under the superModuleType key
+Added Init Message Sent to Webview , Response Received From Webview , Close Message Sent to Webview , Webview Popup Closed By User, User Cancelled Flow In Webview , Webview Popup Closed by SDK , Cookies Set For Webview for digilocker - webApp analytics
+Added validation for uploaded file types in the Form module
+Introduced new version 2 for file upload component
+Fixed
+fixed a issue where custom end screen is not shown for invalid cases (link_expired, invalid_auto_approved etc) when the workflow has inputs in it
+8.11.1 [3 Dec 2024]
+Fixed
+Start transaction API called after a few modules
+Improved the message on the API retry screen by differentiating between an API being blacklisted vs an intermittent internet issue
+8.11.0 [29 Nov 2024]
+Added
+Added support to prefetch assets, workflow, ui config and text config used by the sdk
+Implemented functionality to fetch inputs from S3 if the input size is large in hunterSDK mode
+Added support to send workflowVersion in API calls
+Masked PII data in debug logs sent in trackHVEvents
+Added support to have a fallback if iFrame is blocked by CSP
+Added support to have gradient button in all screens
+Added support to have reason key in ifTrueConfigs and ifFalseConfigs
+Changed
+Upgraded crypto JS package from 4.0.0 to 4.2.0
+Disable back button and close button on capture screen until stream is displayed on screen
+Fixed
+Put transaction state API call will be triggered even for failure child api calls, previously PUT call was made only for success child api calls
+Fixed an issue, where the footer component overlaps with the last element in the form module, when the footer is made visible suddenly by condition / rule
+Fixed an issue where the upload option incorrectly allowed both document and image uploads when an image file was already uploaded in the file upload component
+Updated network handler error messages to convey more information about the issue
+Fixed an issue where the custom end screen is not shown for already completed flows in linkKYC-based flow.
+Fixed an issue where the instruction screen was not shown when the camera permission was blocked as newInstructionScreenProbability was not there in config
+8.10.5 [20 Nov 2024]
+Added
+Added Support to see transaction ID in clarity dashboard
+Added support to change color of right chevron icon in document selection screen
+Fixed
+Fixed an issue where border color of the last OTP block is different from other blocks
+Fixed an issue where events were getting retried in batch upload queue even if they are sent successfully
+8.10.4 [14 Nov 2024]
+Added
+Skip startTransaction when builder mode is enabled
+Added scroll behavior to the form module in builderSDK
+The journeyId from the previous journey will now be reused when resuming the flow, for both cross-platform and local resume flows
+Added support of startTransaction API call for different regions and also made it a blocking API call
+onerror event to Media recorder to send media recorder errors to sentry and log respective data for analytics
+Fixed
+Fixed an issue where, when the last module has child module handlers, the last PUT call for status would resolve before earlier PUT requests, causing an infinite loading state when restarting the flow after reaching the end state.
+The date picker with subtype "spinner" was not supporting onValidated and onChange handler
+8.10.3 [11 Nov 2024]
+Added
+Added new browser and device-specific troubleshooting screen, with permission screen to handle camera-level permission
+Fixed
+Changed video ready condition to trigger only at ready state 4, replacing video.onplaying with video.oncanplaythrough. This change aims to reduce instances of corrupted videos generated by videoStatementV2.
+8.10.2 [6 Nov 2024]
+Added
+Support to send dashboardData in the finishTransaction API call
+Added support in clarity to get transaction id wrt clarity video
+Added network handler support for doc and face modules in webCore mode
+Fixed
+onChange was not triggered during paste events in text fields
+The paste operation was not working in text fields with keyboard type as number on laptop browsers
+8.10.1 [28 Oct 2024]
+Added
+Expose document and face capture timestamp as pre-defined variables
+Add support for submittedTimestamp in WebCore mode
+Fixed
+Incorrectly sending moduleExecutionOrder to the cross-platform resume APIs when back button is pressed
+Fixed an issue where error validation and messages were not displayed for the new date picker component upon reload
+Resolved an issue on iOS devices where the placeholder would overlap with the input value when an invalid value was entered in number-type fields.
+Resolved an issue where the maxHeight of the form module was incorrectly set during orientation changes on certain devices
+Resolved an issue where the retry button wasn't retrying api call on network reconnection
+Fixed an issue where iFrame was not getting attached when endStateProcessing Lottie is used in uiConfig
+Fixed an issue where the previous module screen comes for a second when the webCore webview module completes
+Fixed an issue where native back button not disabled on empty previousStep in webCore
+Fixed an issue where the nativeModuleResultCallback is called multiple times from RPD web app in webCore
+Fixed an issue where default headers and params are not sent for OCR and liveness in webCore
+Fixed an issue where documentOverride's disableOCR not taken into effect in webCore
+Fixed an issue where showEndState is calculated way before loading the variables in webcore
+Fixed an issue where SDKReturnedError event is sent instead of Module User Back Press event for back button press in webCore
+Fixed an issue where disableOCRSides is not reset
+8.10.0 [22 Oct 2024]
+Added
+Added custom end screen support for linkKYC flow
+Added support for modules to lead directly to end states
+Added webCore support
+Fixed
+Fixed an issue where text injection on labels wasn't working properly after reload
+Ensured that on reload of the date picker with subtype "spinner," the asterisk (*) is visible when required is set to "yes," and hidden when required is set to "no."
+Fixed misalignment of the error box when an uploaded PDF exceeds the size limit in the file upload component
+Fixed an issue on iOS where the "Take Photo" option in the file upload component didn't work on the first attempt
+Fixed an issue where boolean and number values were not being included in the query parameters sent to the webview
+Fixed an issue in builderSDK, where countryId not set when trying docModule with one supported document
+Fixed an issue where network error handler's cancel button was not working when CPR is enabled
+Fixed an issue where network error handler displays a CORS error instead of no internet error when CPR is enabled
+Fixed an issue where countryId could not be hardcoded in the document module in the workflow
+Fixed an issue where the wide-angle camera was selected instead of the standard back camera on Samsung devices
+For this wide-angle camera fix, we have fixed it for Samsung devices where the device/browser's default language is English
+Fixed an issue where doc capture loader text is inverted
+8.9.1 [14 Oct 2024]
+Fixed
+Fixed flipping of camera preview in the document module on iPad devices
+Updating module attempts count for child API modules even if the API sends an error status code
+8.9.0 [7 Oct 2024]
+Added
+Added retry mechanism during network error
+Added mechanism to detect CORS and other whitelisting issues for APIs on the SDK and show the message to the user
+Return error when SDK script is added twice on the same web page
+Removed the images from being logged in metabase and replaced them with is valid base64 string
+Added currentModuleId to every event in Metabase and integrated camera availability check
+Fixed
+Fixed an intermittent issue causing the back button to render incorrectly for a moment
+Fixed issue where validation doesn't show up in OTP blocks
+Fixed issue where callback doesn't get triggered after one failure attempt in the OTP module in native mode
+Fixed the issue of sending the transaction id in place of the appid, and the appid in place of the transaction for clarity analytics
+Fixed misalignment of text on buttons on the instructions screen of the document module, face module and barcode module
+Fixed the validation of file component by setting isValid to no when the required is yes and no file is present for the first time
+8.8.5 [20 Sept 2024]
+Added
+In Video Statement v2, added logs to detect audio not available issues
+Send a close post message to the web app after receiving the final response
+Added session refresh feature, to resolve S3 URL expiry issue
+Exposed platform key as part of sdk object. The value for sdk.platform is web
+Send IPAddress, device, and platform (Android, iOS,macOS, Windows, Unknown) in start transaction API
+Fixed
+Fixed the issue where the close button was not rendered properly in the hyperSnap flow
+Fixed an issue where the dynamic form module is non-scrollable in some iOS devices
+Fixed an issue where the user is unable to proceed further in the flow when video recording is enabled in the face module
+Fixed the issue where the dynamic form screen rotates in some mobile browsers when the virtual keypad is opened
+Fixed the issue where the Lottie loader is not shown during the FinishTransaction call when the latest module is from hyperSnap
+The SDK modal is not visible after uploading a document in the document module when OCR is disabled
+8.8.4 [5 Sept 2024]
+Added
+Send workflowId in error during unable to fetch workflow error
+Support for clearing the existing state of a form module when revisiting it
+workflowId is exposed as a default input for workflows
+Optimise performance of Face Module
+Set the auth token in both hvSDKAuthToken and authToken cookies during the redirection flow
+Support for pdf type in request parameters from the workflow
+Support for injection of name and type in request parameters
+Support to disable users from restarting the journey when cross-platform resume is enabled -Support for number types in SDK inputs
+Fixed
+Fixed executing onValidated handler while tapping outside of OTP blocks
+Fixed file Upload Option overflow the parent component
+Send all the exposed properties of a component in the dyanmicFromV2 module to web forms and cross-platform resume
+Rule evaluation produced incorrect results when the hardcoded string in the rule contained spaces
+Do not send the Module Ended event when the module has reached an error state
+Support action sheet when there are multiple child modules in dynamic handlers
+8.8.3 [23 Aug 2024]
+Added
+Added support to fetch gzip Lottie files
+Disabled the API response structure check for workflow-based flows to allow diverse response structures while retaining the check for non-workflow-based flows
+Display instructions screen to enable camera, when the permissions are blocked during capture
+Added support for conditionalVariables in previousStep key
+In dynamic handlers , added support for reloadV2 to be used with rules so that component states can be changed whenever a rule passes or fails
+Set the default values of attempts of modules to 0 when initiating the SDK in the webForms mode
+Fixed the triggering of handlers present in workflow, in mobile browsers, when data is copies and pasted into the input field directly
+Added support to handle arrayIndexing (i.e. of type module_2.details[0].fullName) while getting module variable
+Fixed
+Remove styles attached by the previous dynamicFormV2 module if the next module is not of type dynamicFormV2
+In webForms, when the previous step is an empty string the logo should be displayed
+Fixed the overlapping of drop-down fields when the field is not required
+Fixed issue, where .lottie files are not rendered properly on showEndState screens
+8.8.2 [9 Aug 2024]
+Added
+Added support to customize the height and width of icons in chip components through trailingIconWidth, trailingIconHeight, leadingIconWidth and leadingIconHeight in uiConfig
+Added support to reset buildersdk colors
+When CPR is enabled, and when the form module had file components, added support to resume with file component data
+Fixed
+When CPR is enabled, and when the form module had file components
+Fixed the issue where the Finish transaction call was failing with payload size error by removing the files form the payload
+Fixed the issue where the PUT transaction call was failing with payload size error
+Fixed issue in evaluating condition when it has a conditional variable that resolved to ''
+Removed event listeners and cleared localStorage on the laptop, even when the flow ends on mobile qr flow
+8.8.1 [30 July 2024]
+Added
+Support to customize title, description color on capture screens of document, face and barcode module
+Support to customize back button and close button on capture screens of document, face and barcode module
+Support to customize logo on capture screens of document, face and barcode module
+Update the selfie capture screen by adding a loader while waiting for the camera to load
+Fixed
+Fixed close icon customization issue
+Fixed issue where onBlur handler of the form module components gets triggered when the webForm webview loses focus in nativeSDK mode
+8.8.0 [25 July 2024]
+Added
+Added nextStep support for timer
+Added visual test for location permissions screen
+Added support for form v3
+Added support to remove the close button
+Implemented functionality to close the file upload popup when clicking outside of it
+Added support for hunter SDKs
+Added support to open webview module in iFrame using the key openAsIFrame
+Support to user_cancelled in workflow similar to auto_approved , auto_declined & needs_review
+Fixed
+Removed Flicker in the modal between screens
+Fixed the reload property to reload all default component properties when passing {} and resolved inconsistencies in reloading form components
+Fixed the issue where some of the SDK modal elements were hidden on devices with large scaling resolutions
+Fixed client logo positioning to centre in SDK modal
+Changed the file upload order so that the most recently uploaded file is displayed first, from left to right
+Removed whitespace of file component subTitle, if not present
+Fixed issue where IP address, country, and city were not extracted properly from exif data
+8.7.3 [19 July 2024]
+Added
+Updated the threshold for face detection in selfie capture module to make it easier to capture
+Support for close button icon customisation
+Added additional logs to compute the time taken to upload the video in videoStatement V2
+Added additional logs for internal debugging purposes
+Fixed
+Fixed an issue where the verify OTP API call in the OTP block was triggered twice
+Aligned selfie preview canvas in centre, earlier it was aligned to left
+Resolved the issue where the Chrome browser was blocking the transmission of analytics logs
+8.7.2 [5 July 2024]
+Added
+Implemented batch upload of analytics events with retry mechanism for failed events
+Implemented retry mechanism for startTransaction api
+Added workflowId in headers of startTransaction api call
+Commented Network retry mechanism and added logs
+Added 6MB limit to document upload for document module type
+Removed re-enabling of buttons in webform mode before sending next step callback
+Fixed
+Fixed issue where the back button did not navigate the user to the previous screen
+8.7.1 [26 June 2024]
+Added
+Added support for ifFalseConfigs and ifTrueConfigs keys in the SDK for the "Resume Journey" case.
+Added staggered list variation for components in dynamic list
+integrated microsoft clarity (for analytics), which can be enabled and disabled using appid config. By default it is disabled
+Added support for icon customization for chip component in form module
+Fixed
+Fixed issue causing negative time values in analytics by ensuring consistent timestamp calculation across devices and sessions
+Fixed previous step not working consistently in resume workflow
+Fixed showing error in OTP block on blur
+Fixed timer automatically starting when enabled is set to no by default
+8.7.0 [26 June 2024]
+Added
+Added support to select multiple elements in list component.
+Added support for action sheets in form module
+Added support for mobileSDKs to use web forms
+Added support for builderSDK and teleport mode
+Added the ability to upload multiple pdfs
+Fixed
+Ui improvements in the loader while loading camera canvas.
+Fixed the reload of text fields - now the required property coming from reload takes precedence over the existing validations
+Fixed crashes in api module when undefined.value was passed to the api module
+Fixed sending the callback when put uniqueId is not passed and server side resume is enabled
+Update value key of file component whenever a file is deleted
+8.6.2 [30 May 2024]
+Added
+SendModule User Back Press event when the back button is clicked
+Send Back Pressed as a true event for Stepwise Analytics. Whenever the user goes back from a step to some previous step, we will again log the events for the intermediate modules from the module the user pressed back to the step the user goes back to.=
+**[Breaking change]**Upgraded to Lottie Player v2.7.10
+Any changes to the "processing Lottie" animation using UI config must be made in the .json format, not the .lottie format
+Giving "Processing Lottie" animation using UI config in .lottie will lead to a crash in the SDK from version 8.6.2
+Fixed
+Validation checks are not performed upon reloading of text fields.
+On reload of a checkbox, set isValid and value to yes whenever a checkbox is checked and isValid and value to no whenever the checkbox is unchecked
+Implemented functionality to inject values to the variables in the RHS of conditional rules
+8.6.1 [27 May 2024]
+Added
+Implemented Thomas wrapper for URL shortening service in QR flow to optimize QR code density and enhance scannability
+Disabled selfie video recording by default
+The browser API that webSDK uses to record videos has been failing on a few devices recently. As a result, the flow may get stuck after capturing the selfie. Until this issue is fixed, we have decided to disable this feature. The AI team is also aligned with this update
+Fixed
+Handled falsy values in SDK Response, in such a way that only undefined, null and NaN are converted to empty string
+Fixed the position and visibility of the input field title when the browser auto-fills the field
+8.6.0 [16 May 2024]
+Added
+Added support to click and select values in the dynamic list
+Added the ability to reload a value in a text field
+Added ability to reload the visibility of containers
+Added support for chip components in the form of modules
+Added background image support for web SDK screens
+Added permissions help screen when location permission is declined by the user
+Implemented Radio button component and Radio Group
+Instruction screen for back capture of ID card
+Fixed
+videoStatementV2 not executing on refresh (if attempts are exhausted) because of persistent attempts behaviour by resetting the attempts to 0 whenever the module starts which fixes the issue of the back button not getting pressed while capturing the back side of the ID card.
+8.5.4 [7 May 2024]
+Added
+Added support to customise the colour of the checkbox
+Added Support to change in orientation of document using document override property
+{
+      "type": "document",
+      .....
+      "properties": {
+        "documentsSupported": {
+          "phl": [
+            "cr"
+          ]
+        },
+        "documentsOverride": {
+          "phl": {
+            "cr": {
+              "type": "card"
+            }
+          }
+        },
+      }
+    }
+
+Fixed
+The form module's last element not being visible on scroll in iOS
+Use of custom Lottie animations in OCR instructions screen from ui config
+The alignment of the loader in the loader button component
+Reload of file component
+8.5.3 [7 May 2024]
+Fixed
+Increased the form module's footer width to fill the entire dynamic form width
+
+8.5.2 [19 Apr 2024]
+Fixed
+Initialising SDK two times in QR redirection flow
+set isValid as no if required is true and value is empty on reload
+Removed * in file upload field title when the field is not mandatory
+Added
+Added new screens for allowing popups in webview
+Support to customize initial loader screens through the setter function(setInitialLoaderColor)
+8.5.1 [12 Apr 2024]
+Fixed
+Back button alignment when logo is present on laptop browsers
+Alignment issues in file component in workflow builder
+Landing page getting displayed after re-directing from webview module to the SDK
+Adjusted the form height to ensure the CTAs are accessible in longer forms of iOs devices
+Form module resume
+Fixed the logo positioning on loader screen to be consistent with the other screens
+Fixed the width of the documents container and the description in the document picker screen
+The font color of the input fields are correctly getting fetched from the ui config
+The border color of the input fields that are enabled are correctly getting fetched from the ui config
+The default icon of the date picker is changed
+On iphones the dropdown fields were in focus always, fixed it
+Increased the colors of the disabled state of the input fields on phones
+Fixed the powered by hyperverge footer such that it doesn't overlap with the other elements on scroll and takes the max width
+Fixed the misalignment of checkboxes when there are multiple lines in the labels
+Correctly set the default isValid values of checkbox when they are checked
+Added
+14 Visual test for video statement v2. It includes flows on both mobile and laptop.
+Support of cloudflare to fetch ip of the client.Added unit test and visualtest for the same. Visual test includes all flows in laptop and mobile screen
+Support to get requestId from metaData object from the API response
+Child modules ID to the execution path
+Support to process file when the param type is image in API module
+Added dark mode support for missing screens and fixed inconsistencies in already existing dark mode screens
+Added disabled button color for capture button
+8.5.0 [1 Apr 2024]
+Added
+Updated UI of disabled state form module components.
+Support to send SDK Response for error and user_cancelled end-states when returnPartialSDKResponse is set to true in workflow properties
+Added support to use the new lottie animations that allow customisation of color
+Skipped uploading sensor data
+8.4.2 [22 Mar 2024]
+Added
+Support for enabling camera permissions screen on Laptop browsers
+On iOS, if the user declines camera permissions three times consecutively, end the flow with a 'permissions denied' error. Because, after three continuous denials, the user will no longer be prompted for camera permissions
+Send face coordinates received from the face detection model by default in the payload of the Face Module
+Fixed
+Modal screen not fully visible on smaller screens(On Windows)
+Resume workflow feature conflict with web view redirection feature
+8.4.1 [22 Mar 2024]
+Added
+Added support to render dynamic lists in the form module. Dynamic lists contain Images, containers and labels currently
+Increased modal width to ensure the width of the modal on a laptop is the same as that of mobile devices in order to get the same appearance when ui config is used in the form module
+Reduced HV branding footer size
+8.4.0 [7 Mar 2024]
+Added
+Support for minimumDuration to set minimum duration of recording in video statement v2 module
+Updated statement function to set duration within the statement object.
+Optimised doneButtonController to not call setTimeout every time face-detection callback is fired.
+Support for visible property for Hint Component
+Support for value property on reload for Text block component
+Support for Dynamic Form Module Footer
+Integrate start API for variable security
+Send inputs, resolved module variables, resolved conditional variables and execution in the finishTransaction API call for variable security
+Added support to have custom colour and font family of the footer text
+Added support to inject values into labels
+8.3.2 [26 Feb 2024]
+Added
+Support to exitOnCancel when openAsPopup is set to false.
+Support to read hvWebviewReserved from WebView response and process status and requestIds from hvWebviewReserved when openAsPopup is set to false
+Close the active WebView tab when SDK is closed.
+Store cookies against the primary domain name(hyperverge.co) instead of the subdomain(idv.hyperverge.co).
+8.3.1 [22 Feb 2024]
+Added
+Checking for v2WhitelistedEndpoints from default config.
+Text-config support for the loader screen that is displayed when the user is taken to the webview module in another tab.
+Support to resume auto_declined transactions in cross-platform resume workflow.
+Fixed
+When resumeWorkflow is enabled, the workflow will be resumed from the last step on a browser even after using a different transaction ID.
+Flickering of the loader screen at the start of the QR redirection journey
+Form Module components jump on validation/error.
+Fixed missing back button on QR Screens and country search screen
+Send requestIds of API calls made in child modules and requestIds from webview module response in finishTransaction.
+Disable Picture-in-Picture Mode in Firefox.
+Locking client apps orientation to portrait mode when the device is changed to landscape mode.
+Fixed issue logged on sentry from form module dropdown when there was no value to inject in the component
+8.3.0 [13 Feb 2024]
+Added
+Added support for cross platform resume workflow
+Added support to get location details in doc and face module using hyperKycConfig.setUseLocation(true);
+Added support for back navigation using previous step
+Fixed
+Enable OTP text blocks when reloading it without entering any values
+Videos from different attempts from different videoStatementV2 module getting rendered in the same card on portal
+Extra params not getting sent along in upload video API call.
+Arrays in requestBody getting converted to an object in API module.
+8.2.1 [6 Feb 2024]
+Added
+Support for back button icon customisation
+Added more logs to track sentry crashes
+8.2.0 [2 Feb 2024]
+Added
+New Date picker with subType spinner
+Fixed
+Stepwise analytics fix - Few analytics events were not sent at the beginning of the QR flow. This is fixed by passing the analytics-related configs to Firebase and using the config while initialising the QR journey on mobile.
+User stuck on camera screen after declining permissions - End the mobile journey with an error status when camera permissions are rejected on browsers other than Chrome, Firefox, Opera, and Safari.
+Fixed Document auto-capture by downgrading the Tensorflow lite dependencies to an older version.
+When an integer was in requestBody, the requestBody computation was breaking. This has been fixed.
+8.1.1 [29 January 2024]
+Added
+Support whiteListedDomains for webview based on appId config.
+Fixed
+Center aligned the texts in QR redirection screen.
+Center aligned the exclamatory icon showed when unsupported / large document is uploaded.
+Fixed the issue where 'Looks like this link is no longer valid' appeared when the browser was refreshed in the QR redirection. This was resolved by deleting data from the Firebase DB at the end of the mobile journey instead of clearing it at the start.
+Fixed instrcutions jump in selfie capture screen
+8.1.0 [12 January 2024]
+Added
+Migrated from rudderstack to Apollo.
+Send webSDK-related analytics events to the web_sdk_analytics table.
+Added support to maintain the form module component values when pressing back button and coming to the same form module again.
+Exposed face detection result in logVideoStatement API
+Fixed
+Removed empty string ('') as the placeholder of the dropdown component and replaced it with the hint/title text.
+The branding Powered by Hyperverge is now center-aligned in all screens.
+The increment and decrement icons on number type input fields in Firefox browsers have been removed.
+Inconsistency in the size of OTP text blocks has been fixed.
+When a condition has a conditional variable and that conditional variable returns a string, the returned value is treated as a variable during condition evaluation instead of a string. Fixed it by enclosing the output of loadConditionalVariables within quotes if it is a string.
+8.0.3 [13th December 2023]
+Added
+Support to customize the background color of text and date components in the form module
+Fixed
+VideoStatement - 'Recording not started' gets fired if the user presses the done button when the duration timer is just about to end.
+VideoStatement - Fixed user clicking done recording button even without showing their face once in the review screen. Now done button is enabled only after 1 second (or afterward) if the user has shown their face.
+8.0.2 [13th December 2023]
+Fixed conflict between resume Workflow and openAsPopup in webview. When openAsPopup is set to false in webview module, the webview url is opened in the same tab, and on redirection the SDK resumes the flow from the same step. Earlier, this was working as resumeWorkflow. It was resuming the flow if the usr dropped off in another step after webview, this has been fixed. Now it works independent of resume workflow
+Fixed the hint component width in form module
+8.0.1 [30 November 2023]
+Added
+
+Expose attempts count for all modules.
+Log Module Started , Condition Started and Condition Ended events for Stepwise Analytics
+Reload Compoments revamp to v2.0 while maintaining backwards compatibility
+Fixed
+
+Prioritized video/webm format over other supported formats for liveness video recording.
+QR flow for video statement v1 by reattaching text config.
+8.0.0 [15 November 2023]
+Added
+
+Support for child modules v1
+Only API module as a child module is supported
+Added new primitive form components
+OTP Text blocks
+Horizontal container
+Timer
+Loader
+Text
+Added support to use the ui config to modify the padding and margins of form components
+Introduced typescript and jsx in the code base
+Using Jsx compiler to compile jsx to js
+Introduced import statements in the code base
+Using webpack and ts compiler to compile code into a single js file
+Modified the default paddings and margins of form module components to be inline with mobileSDK
+Added support to exit the workflow if webapp is closed using the key exitOnCancel.
+Added support to read hvWebviewReserved from webview response and process status and requestIds from it.
+Fixed
+
+Browser compatibility issues with OffscreenCanvas used in Barcode module
+7.6.1 [31 October 2023]
+Fixed
+
+Recording not available error by adding the timeslice argument to media recorder and setting it to 100.
+7.6.0 [16 October 2023]
+Added
+
+Video statement V2 module
+Support for the new appId configuration structure.
+Added back button on the "waiting for QR results" screen on laptop.
+Support to send list of cameraIds along with their names to rudderstack
+Support to send device model to rudderstack
+Support to send camera stream properties to rudderstack(only on chrome)
+Fixed
+
+Overriding documentsSupported key in the workflow config object.
+7.5.8 [6 October 2023]
+Added
+
+Support to hide back button on the first screen of a module Fixed
+HyperSnap API call module
+Skip the signature validation check for a few 4xx and all 5xx cases where x-hv-signature is not present in the response headers
+7.5.7 [19 Sept 2023]
+Added
+
+Display instructions screen to enable popup , when popup is blocked by browsers
+Support for the visible property in the title and description component in the form module.
+7.5.6 [13 Sept 2023]
+Fixed
+
+SDK getting initialised two times in QR Redirection Module
+7.5.5 [31 Aug 2023]
+Fixed
+
+SL Scan -> Fixed high and critical vulnerabilities
+Remove Padding for placeholder text in form moudle when the component has prefilled value
+Disable capture button after the first click to prevent duplicate API calls
+Reusing old authToken when workflow is resumed
+Support injectable values in content property
+7.5.4 [28 Aug 2023]
+Added
+
+Exposed enabled , required and visible properties of form module components
+Support to limit flags to latest iteration
+Support to static Year and Month in datepicker field
+Fixed
+
+Ultra-wide camera getting invoked in high-end Samsung devices.
+Removed document name in the subtext shown in doc capture screen when auto-capture is not enabled.
+7.5.3 [17 Aug 2023]
+Added
+
+Support to send failure reason for non-success end states
+7.5.2 [9 Aug 2023]
+Added
+
+Support to disable OCR for a particular side of a document
+Support to send lastModuleExecuted , lastCondition and workflowId on every finishTransaction call
+Support to send Start Workflow , End Workflow and WebView Module Loaded events for Stepwise analytics
+Support to disable camera permissions help screen on mobile
+Support to extract flags from API responses and send them in finishTransaction
+7.5.1 [31st July 2023]
+Added
+
+Exposed attempts count of face and doc module by default.
+Added a new QR reader (jsQR) to improve reading rate on iPhones
+Use Regional Deployments for finishTransaction API Fixed
+Added fallback for Failed to fetch error that occurs while performing fetch with base64 string of an image
+OCR Lottie player alignment
+7.5.0 [14 July 2023]
+Added Dynamsoft barcode reader to improve the reading rate of PDF417 type barcodes.
+Added Stepwise analytics - event logging
+Added support for resume workflow
+Added support to override device's default userAgent when custom userAgent is passed in SDK inputs Others
+API to decode QR Code reader's result of Aadhaar cards.
+7.4.0
+Sprinto in the pipeline.
+If the browser does not have camera access in the HyperKYC flow, then finishTransaction API is called with an error message stating "Browser does not have camera access" without invoking the main callback.
+Lock the SDK in portrait mode even when the device is in landscape mode
+Added support to enable 100% logging of events on rudderstack.
+Event tag filter is added to log only the error from SDK to sentry
+Added Dark mode support.
+Fixed re-record button on stopSession module's review screen by properly referencing the startSession module.
+Fixed Optimised the QR code reader module to improve its ability to read dense QR codes.
+Fixed Client's cookies were getting deleted, fixed it.
+7.3.7
+Added support for Voice over and voice control for accessibility.
+Fixed max call-stack exceeded error in Safari for a large payload encryption
+Fixed when conditional variables was set to a simple string (for example "test") the value wasn't getting injected to API module that has JSON body. This is fixed in this version
+Fixed when video recording was set to false, the SDK was still recording video, this has be fixed in this version.
+UI Improvement: Center align message on retake screens.
+SVKYC and Session recording:
+Modified variable in the workflow to follow the same standard that is used in other modules
+Moved the language code config support from text config to thomas layer.
+Upload video statement results from SDK even in negative cases for better visualisation on dashboard.
+Minor Internal code improvements.
+7.3.4 [5 June 2023]
+Removed the default API processing lottie loader and the default SDK loader and added a new CSS loader.
+If the client has given a processing lottie loader, that will be used for the api processing states, otherwise the default CSS loader in the SDK will be displayed.
+7.3.5 [7 June 2023]
+Fixed session recording not working on firefox due to audio issues
+Modified the size of lottie loader for end states to match the other processing loader
+Fixed positioning of logo on loader screens
+Added loader screen for finish transaction API call
+Post camera capture processing loader was not rotating earlier. It has been modified to rotate.
+Features:
+Added camera permissions help screen for firefox and safari mobile browsers
+Added additional camera UI to handle slow UI change in slow devices
+Added payload encryption on v2 finish transaction
+Added support for signature validation for ind verify endpoints
+7.3.3
+Fixed session recording - the video was not playing on chrome when the MIME type was set to video/webm, because it was generating video in video/x-matroskaformat. fixed this by prioritising MIME Typevideo/webm;codecs=vp9'`
+Video statement: Fixed Infinite loop problem for async checks
+By clearing the previous results of failure
+Fixed camera resources not getting released if OCR is disabled by moving reset function from responseHandler to onSaveDocument.
+Added support for Form module's secondary button's UI customisation
+7.3.2
+On native miUi browser,
+If the camera screen is triggered We show a pop up stating sdk doesn't work on the browser because it cant access camera.
+The behaviour of vivo native browser is modified to work like a regular flow
+Added support for showing Failure Title and hint for end state lottie of face and OCR flow
+7.3.0
+Added support to show review screen for session recording in stop session module
+showReview: true
+allowedReAttempts for no of re-record attempts
+Added support to show timer for video statement
+displayTimer: true
+Fix: Waiting for all the scripts to load before starting the flow
+7.2.0
+Added Support to make showing the end (success/failure) state lottie and Message customisable
+7.1.0 [ 17 May 2023]
+Added Support for video statement in GKYC
+Added support to show client logo on selfie and doc processing screens
+7.0.0 [15 May 2023]
+Disabled document review screen by default
+It can be enabled by setting showReview: true
+Introduced user session recording for gkyc
+Added new generic lottie loaders with support for showing end states for api modules
+6.5.0
+On Mobile devices the client's logo wasn't center aligned properly on the top earlier, It has been fixed in this version of SDK.
+Added support for vertical nested components in the Form Module
+Included unique journey id for each user session in GKYC
+Added support for QR Module in the workflow - Refer - The module exposes the following two variables - barcodeData and barcodeStatus
+barcodeStatus - It can take two values → success/skipped
+barcodeData - It is a JSON object that has the QR data in it
+Made web SDK A11Y compliant
+6.4.0
+Removed camera capture button when camera isn't present in the device.
+Support opening Digilocker in the same tab for LinkKYC when openAsPopup is set as false
+Migrate finishTransaction to India GKYC v2/finishTransaction
+Selfie Video recording is enabled by default for all users
+6.3.0
+New Features
+Added File upload feature in dynamic Form Module
+Added File upload feature in dynamic Form Module
+Added support for signature Validation to prevent MITM attacks for hypersnap and hyperkyc sdk
+Added support to use custom domain for QR flow (Configurable using the workflow)
+Improvements and Bug Fixes
+Fixed sdk crash when a undefined variable is used in the workflow rule
+Added support to send image urls and required base 64 strings in finish transaction's user details
+Fixed jquery incompatibility issue with parent application
+6.2.1
+Fix video preview rotation issue on iOS devices that updated to iOS 16.3.
+6.2.0
+Added support for video selfie in hyperSnap flow.
+Added support for doc autoCapture.
+Added support for reading PDF417 barcode in US Driving Licence.
+6.1.2
+Removed Generic CSS present in the SDK to avoid it affecting the client's application.
+Fixed Black image issue when OCR review screen is disabled.
+Increase QR resolution.
+Fixed Video loading issue on safari (v16.2 and above) when instructions screen is disabled.
+Enabled document reordering on document picker screen using the documents supported order.
+Fixed minor bugs identified on sentry.
+6.1.1
+Fix Response Structure for QR Flow in GSDK.
+Added additional logs.
+6.1.0
+Added new metabase logs to find the latest module.
+Modified the upload file size limit to 6MB in the SDK.
+Fixed the size of document picker screen to occupy entire screen space.
+Added support for kyb documents (that are not present in countries.json) in document module using documents Override.
+6.0.0
+Improved error handling of digilocker/webview module (Backwards incompatible).
+UI config Phase 2
+Added support to use custom lottie animation,
+Added support to use custom lottie animation,
+Made document picker screen customisable.
+Form Module UI Improvements
+Added * to indicate mandatory field,
+Fixed spacing realignment when error msg is shown,
+Fixed date field alignment for iOs safari,
+Other UI improvements.
+QR flow screens UI and text fixes.
+Fetch text from default text config by default.
+5.7.0
+Added Support to add logo to webSDK Screens.
+Moved landing page from link based setup to webSDK. .
+Added loader screen when webview module is loaded to avoid showing the parent app.
+Added new metabase events - formButtonClicked, formOpened, redirectedFromWebviewToSDK.
+5.6.0
+Overriding the default behaviour - QR redirection when camera is not present in device using enforceCameraCheck.
+Minor UI fixes.
+Internal improvement - visual tests added to improve sdk stability.
+5.5.0
+Added Support for Dynamic Form Module - Phase 2.
+Added support to send moduleID in queryParams for web-view module.
+Removed cloudFare to fetch ipAddress for GeoIp.
+5.4.0
+Added Support for Dynamic Form Module - Phase 1. Sample workflow - link.
+Added Support for sending request params for workflow document module
+Fixed Incompatibility issues with nextJS
+5.3.0
+Exposed response headers to workflow for all api calls to verify response signatures.
+Added support to override allowed statusCodes using workflow to support CKYC flows.
+Added text config support for static form module.
+5.2.9
+Resized QR screens to match other screens.
+Added support to use back camera for selfie capture (configurable using workflow).
+Added support for conditional variables to be used inside a conditional variable.
+Fixed image capture issues on mobile devices.
+Added support to read query params from workflow for webview modules.
+Added support to show alert box in selfie capture screen.
+Fixed translation of retake messages using from text config using module subtypes for ocr.
+Added support for redirecting to mobile when the device doesn't have a camera inbuilt.
+5.2.8
+QR Code size increased to improve readability.
+Image Aspect Ratio corruption of iPhones - fixed.
+Loader added in between different module screens to ensure the parent app isn't visible during the flow.
+5.2.7
+Added support for conditional variables.
+Supported file types for upload doc flow made configurable using workflow (pdf is disabled by default)
+Face capture size threshold modified for mobile devices to improve user experience.
+Initial loader screen added to handle delay in sdk initialisation.
+Camera permissions help screen added when camera permissions are rejected in Android phones (chrome and opera browser).
+5.2.6
+Added Error Codes and Error Messages for GSDK.
+Sending images in GSDK response when the sdkResponse in the workflow has the image details.
+5.2.5
+applicationStatus Bug Fix for finishTransaction API call when status is error
+Improved camera loader UI
+Added Support for UI and Font customisation for webSDK
+Face Match failed moved from error bucket to workflow controlled flow
+All laptop flows are redirected using QR to mobile by default- It can be disabled using workflow
+Added Debug info for finishTransaction to improve internal debugging
+Added support to override countryID in the OCR Module using inputs
+5.2.4
+Added Camera preview support for different aspect ratios
+Webview bug (introduced in v5.2.3) has been fixed
+UI improvements
+Camera module upgrade
+5.2.3
+UI improvements
+5.2.2
+Added support to redirect users from laptop to mobile using QR workflow
+Internal improvements
+5.2.1
+Internal improvements
+5.2.0
+Modified Anti image injection logic to tackle advanced fraudsters
+Exposed sdk.device in workflow config for rules
+Exposed documentId for document modules in workflow
+Breaking Change
+
+GSDK Response Structure Modified - It is now fetched from workflow config
+5.1.6
+Support for Custom Inputs Added
+Support for enabling video recording added
+Secure Data transfer in webview
+Minor UI fixes
+5.1.5
+Added Text Config support
+TrackUser - User Drop off Events
+Fix Black image issue
+UI bug fixes
+5.1.4
+endUserSession is now called at the end of GSDK flow
+5.1.3
+Optimised Loaders
+Added TransactionId in Error and responses
+Fixed multiple attemptsKey in multiple flow
+Fixed small face detected text
+Fixed baseURL issue in GSDK
+Fixed UI for windows
+4.1.7
+Black Image Fixed for iOS
+TransactionId returned in Error
+5.1.2
+Auto Capture for Selfie Added
+5.1.1
+Digilocker and AadhaarXML Support Added
+5.1.0
+Workflow Builder support Added
+5.0.0
+New overall UI
+4.1.6
+Error Logging Added
+4.1.5
+Internal Improvements
+4.1.4
+Internal Improvements
+4.1.3
+Logging Instrumentations Added
+4.1.2
+Setter function added for retake function
+4.1.1
+No flipped preview on desktop for doc capture
+Capture Selfie Events for internal uses
+Global SDK improvements
+4.1.0
+Internal Improvements
+4.0.0
+Internal Improvements
+Global SDK added
+3.5.1
+Internal improvements
+Blocking Image Injection
+3.5.0
+Update Firebase Version
+3.4.4
+Capture Sensor Data to improve liveness model
+3.4.1
+Rename removeLoader function to removeHVLoader to avoid conflicts
+3.4.0
+Internal Enhancements
+3.3.11
+Add city, country and countryCode in exif data extraction
+3.3.10
+Better Internal API tracking using appId
+3.3.8
+Return "015" "Failed to detect camera on this device" error in case camera is not detected before capture screens
+3.3.7
+Increase doc upload size to 12MB
+3.3.6
+Removed inline css and added classes
+3.3.5
+Add UI Customisations Ids so that screen's UI is easily configurable
+Change data flow in QR.
+3.3.4
+Bug Fix : Fix Review buttons out of screen on larger devices
+3.3.3
+Provide argument to turn off our mixpanel and sentry
+3.3.2
+Remove loading google font apis
+3.3.1
+Send attempts count in response
+3.3.0
+Doc Review Screen will now be false by default
+3.2.9
+Bug Fix - FIX buttons UI in user choice screen
+Improve mixpanel events
+3.2.8
+Bug Fix - pass correct transaction ID in Qr flow
+3.2.7
+Add Document upload flow
+Add ipify, cloudflare and jsonIp to fetch ip
+3.2.6
+Reduced size of the SDK by 90%
+Remove storing of image in local storage of browser
+3.2.5
+Update UI for incorrect urls in QR Flow
+Fix bug where IP not found gave an error
+3.2.4
+Add Setter methods for qr texts
+3.2.3
+FIX BUG : Timeout geolocation api after certain time so that rest of exif data is returned is location cannot be extracted
+3.2.2
+Improve UI of instructional screen
+Add customizations for UI instruction screen texts
+3.2.1
+Improve Native camera support when the browser doesnt have camera access
+3.2.0
+Add Ip address to exif data extraction
+3.1.9
+Add Methods to change description on face detection screen
+Add provision to get the link from QR Module itself
+3.1.8
+FIX - Internet explorer compatbility for QR and CAM Modules
+3.1.7
+Make cursor pointer on capture button
+Remove margin-top from qr code screen
+Add Cam Module functions to get KYC link
+Add exif data extraction functions
+3.1.6
+Enhanced Firebase security. QR module will not work before this version anymore
+Fix forming of QR URL in case of parameters present in url
+3.1.5
+Fix QR callback method.
+Fix starting multiple instances of QR flow
+3.1.4
+Add callback with msg "Operation Cancelled By User" if close button on popup is clicked
+3.1.3
+Round popup corners for bigger screen
+Add : HVBrowserModule.isInternetExplorer() to check if the browser in use is internet Explorer
+Remove encrypted data from firebase. Encrypted Data is deleted as soon as process completes
+Bug Fix : Capture button clicked before camera is loaded in document screen. It is now disabled till camera has loaded.
+Bug Fix : Mixpanel error when sdk is initialized more than once
+3.1.2
+Update firebase config
+3.1.1
+Remove Face Review screen after capture.
+3.1.0
+Changed UI. The modal covers the entire screen on smaller devices like smartphones. This gives a bigger camera screen and text for the user
+Increased text size and button sizes.
+Add disabled button when face is not detected
+Make face capture screen a complete circle
+Add setFaceReviewDescription method
+Tags:web-sdk-changelog
+Last updated on Feb 18, 2026
+Previous
+Web SDK Integration Guide
+Next
+Migrating to Web SDK v10.0.0
+Was this helpful?
+😭
+😞
+😐
+🙂
+🤩
+ON THIS PAGE
+10.5.0 [12 Feb 2026]
+10.4.0 [11 Feb 2026]
+Added
+Fixed
+Enhancement
+10.3.0 [5th Feb 2026]
+Added
+Fixed
+10.2.0 [27 Jan 2026]
+Added
+Enhancement
+Fixed
+10.1.0 [16 Jan 2026]
+Enhancement
+10.0.0 [9 Jan 2026]
+Added
+Fixed
+9.18.0 [3 Dec 2025]
+Added
+Enhanced
+Fixed
+9.17.2 [27 November 2025]
+Enhancement
+Fixed
+9.17.1 [19 November 2025]
+Enhancement
+Fixed
+9.17.0 [6 Nov 2025]
+9.16.1 [23 Oct 2025]
+9.16.0 [14 Oct 2025]
+9.15.10 [26 Sept 2025]
+9.15.9 [22 Sept 2025]
+9.15.8 [18 Sept 2025]
+Fixed
+9.15.7 [16 Sept 2025]
+Enhancement
+Fixed
+9.15.6 [10 Sept 2025]
+9.15.5 [8 Sept 2025]
+Fixed
+Internal changes
+9.15.4 [01 Sept 2025]
+Added
+Fixed
+9.15.3 [28 Aug 2025]
+Enhancement
+Fixed
+9.15.2 [18 Aug 2025]
+Fixed
+9.15.1 [7 Aug 2025]
+Fixed
+9.15.0 [5 Aug 2025]
+Enhancement
+9.14.0 [24 July 2025]
+Fixed
+9.13.0 [23 July 2025]
+Added
+Fixed
+9.12.0 [07 July 2025]
+Added
+Fixed
+9.11.1 [28 June 2025]
+9.11.0 [22 June 2025]
+Added
+9.10.0 [19 June 2025]
+Added
+Fixed
+9.9.1 [13 June 2025]
+Changed
+Fixed
+9.9.0 [6 June 2025]
+Fixed
+9.8.0 [27 May 2025]
+9.7.1 [26 May 2025]
+9.7.0 [16 May 2025]
+Added
+Enhancement
+9.6.1 [14 May 2025]
+Enhancement
+Fixed
+9.6.0 [8 May 2025]
+Added
+9.5.0 [7 May 2025]
+Added
+Enhancement
+9.4.1 [6 May 2025]
+Enhancement
+9.4.0 [30 Apr 2025]
+Added
+Enhancement
+Fixed
+9.3.2 [27 Apr 2025]
+Changed
+9.3.1 [24 Apr 2025]
+Enhancement
+Changed
+9.3.0 [16th Apr 2025]
+Added
+9.2.2 [9 Apr 2025]
+Added
+Bug Fixes
+9.2.1 [28 Mar 2025]
+Added
+Fixed
+9.2.0 [20 Mar 2025]
+Added
+Changed
+Fixed
+9.1.0 [11 Mar 2025]
+Added
+9.0.0 [7 Mar 2025]
+Added
+Changed
+Fixed
+8.14.2 [05 Mar 2025]
+Added
+Changed
+Fixed
+8.14.1 [21 Feb 2025]
+Added
+Changed
+Fixed
+8.14.0 [18 Feb 2025]
+Added
+Changed
+Fixed
+8.13.4 [6 Feb 2025]
+Added
+Fixed
+8.13.3 [30 Jan 2025]
+Added
+Changed
+Fixed
+8.13.2 [23 Jan 2025]
+Added
+Changed
+Fixed
+8.13.1 [16 Jan 2025]
+Changed
+8.13.0 [9 Jan 2025]
+Added
+Changed
+Fixed
+8.12.1 [2 Jan 2025]
+Added
+8.12.0 [31 Dec 2024]
+Added
+Fixed
+8.11.5 [24 Dec 2024]
+Added
+Fixed
+Changed
+8.11.4 [23 Dec 2024]
+Added
+Fixed
+8.11.3 [16 Dec 2024]
+Fixed
+8.11.2 [12 Dec 2024]
+Added
+Fixed
+8.11.1 [3 Dec 2024]
+Fixed
+8.11.0 [29 Nov 2024]
+Added
+Changed
+Fixed
+8.10.5 [20 Nov 2024]
+Added
+Fixed
+8.10.4 [14 Nov 2024]
+Added
+Fixed
+8.10.3 [11 Nov 2024]
+Added
+Fixed
+8.10.2 [6 Nov 2024]
+Added
+Fixed
+8.10.1 [28 Oct 2024]
+Added
+Fixed
+8.10.0 [22 Oct 2024]
+Added
+Fixed
+8.9.1 [14 Oct 2024]
+Fixed
+8.9.0 [7 Oct 2024]
+Added
+Fixed
+8.8.5 [20 Sept 2024]
+Added
+Fixed
+8.8.4 [5 Sept 2024]
+Added
+Fixed
+8.8.3 [23 Aug 2024]
+Added
+Fixed
+8.8.2 [9 Aug 2024]
+Added
+Fixed
+8.8.1 [30 July 2024]
+Added
+Fixed
+8.8.0 [25 July 2024]
+Added
+Fixed
+8.7.3 [19 July 2024]
+Added
+Fixed
+8.7.2 [5 July 2024]
+Added
+Fixed
+8.7.1 [26 June 2024]
+Added
+Fixed
+8.7.0 [26 June 2024]
+Added
+Fixed
+8.6.2 [30 May 2024]
+Added
+Fixed
+8.6.1 [27 May 2024]
+Added
+Fixed
+8.6.0 [16 May 2024]
+Added
+Fixed
+8.5.4 [7 May 2024]
+Added
+Fixed
+8.5.3 [7 May 2024]
+Fixed
+8.5.2 [19 Apr 2024]
+Fixed
+Added
+8.5.1 [12 Apr 2024]
+Fixed
+Added
+8.5.0 [1 Apr 2024]
+Added
+8.4.2 [22 Mar 2024]
+Added
+Fixed
+8.4.1 [22 Mar 2024]
+Added
+8.4.0 [7 Mar 2024]
+Added
+8.3.2 [26 Feb 2024]
+Added
+8.3.1 [22 Feb 2024]
+Added
+Fixed
+8.3.0 [13 Feb 2024]
+Added
+Fixed
+8.2.1 [6 Feb 2024]
+Added
+8.2.0 [2 Feb 2024]
+Added
+Fixed
+8.1.1 [29 January 2024]
+Added
+Fixed
+8.1.0 [12 January 2024]
+Added
+Fixed
+8.0.3 [13th December 2023]
+Added
+Fixed
+8.0.2 [13th December 2023]
+8.0.1 [30 November 2023]
+8.0.0 [15 November 2023]
+7.6.1 [31 October 2023]
+7.6.0 [16 October 2023]
+7.5.8 [6 October 2023]
+7.5.7 [19 Sept 2023]
+7.5.6 [13 Sept 2023]
+7.5.5 [31 Aug 2023]
+7.5.4 [28 Aug 2023]
+7.5.3 [17 Aug 2023]
+7.5.2 [9 Aug 2023]
+7.5.1 [31st July 2023]
+7.5.0 [14 July 2023]
+7.4.0
+7.3.7
+7.3.4 [5 June 2023]
+7.3.5 [7 June 2023]
+7.3.3
+7.3.2
+7.3.0
+7.2.0
+7.1.0 [ 17 May 2023]
+7.0.0 [15 May 2023]
+6.5.0
+6.4.0
+6.3.0
+6.2.1
+6.2.0
+6.1.2
+6.1.1
+6.1.0
+6.0.0
+5.7.0
+5.6.0
+5.5.0
+5.4.0
+5.3.0
+5.2.9
+5.2.8
+5.2.7
+5.2.6
+5.2.5
+5.2.4
+5.2.3
+5.2.2
+5.2.1
+5.2.0
+5.1.6
+5.1.5
+5.1.4
+5.1.3
+4.1.7
+5.1.2
+5.1.1
+5.1.0
+5.0.0
+4.1.6
+4.1.5
+4.1.4
+4.1.3
+4.1.2
+4.1.1
+4.1.0
+4.0.0
+3.5.1
+3.5.0
+3.4.4
+3.4.1
+3.4.0
+3.3.11
+3.3.10
+3.3.8
+3.3.7
+3.3.6
+3.3.5
+3.3.4
+3.3.3
+3.3.2
+3.3.1
+3.3.0
+3.2.9
+3.2.8
+3.2.7
+3.2.6
+3.2.5
+3.2.4
+3.2.3
+3.2.2
+3.2.1
+3.2.0
+3.1.9
+3.1.8
+3.1.7
+3.1.6
+3.1.5
+3.1.4
+3.1.3
+3.1.2
+3.1.1
+3.1.0
+

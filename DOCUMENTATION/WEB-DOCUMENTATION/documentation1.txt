@@ -1,0 +1,53 @@
+Web SDK
+Introduction
+The HyperVerge WebSDK is a client-side JavaScript library that integrates HyperVerge's verification workflows directly into web applications. It provides a complete implementation of document capture, facial verification, liveness detection, and other configurable verification modules through standard web technologies.
+
+Platform Agnostic Integration: The WebSDK works seamlessly with any web platform or programming language, whether your backend is built with Python, Node.js, PHP, Java, .NET, Ruby, or any other technology. Since it's a client-side JavaScript library, it integrates universally with any web application.
+Key Features
+WebSDK can be implemented with just a few lines of code
+Handles document capture, face verification, and compliance processing
+Supports multiple document types and languages across different countries
+Configurable interface elements to match your application's branding
+Built-in data encryption and secure transmission protocols
+Implementation Overview
+The SDK is embedded into your web application using JavaScript
+Users complete verification steps directly within your application interface
+The system returns structured results with status and extracted data
+Applications can process results to determine next steps in user flows
+Prerequisites
+Your Domain and IP addresses need to be whitelisted for security. You can manage IP whitelisting through CORS Whitelisting on the HyperVerge One dashboard. During initial onboarding, admin users can whitelist IP addresses, and once completed, whitelisted IPs maintain permanent access.
+For assistance with Domain or IP whitelisting, please contact our integration team at integrations@hyperverge.co
+A configured workflow must be set up in your HyperVerge dashboard
+Your backend must be capable of generating JWT tokens
+Your website must use HTTPS protocol
+Your target browsers must support required features (check compatibility)
+It is not required to whitelist your localhost
+For security reasons, you cannot run the SDK on your localhost directly without an HTTP server
+Use a service like the Apache HTTP server to execute the sample file. To serve the file on the HTTP server, run the npx http-server command in the same directory
+Related Documentation
+Page	Description
+Quick Start Guide	Get started quickly with Web SDK using this step-by-step quick start guide
+Integration Guide	Step by step guide for integrating the Web SDK into your web application with code examples
+Changelogs	Track version updates, new features, bug fixes, and breaking changes in the Web SDK
+Browser Compatibility	Learn about supported browsers, minimum requirements, and compatibility considerations for the Web SDK
+Tags:sdk-documentationweb-sdk
+Last updated on Nov 13, 2025
+Previous
+Flutter SDK Changelog
+Next
+Web SDK Quick Start Guide
+Was this helpful?
+😭
+😞
+😐
+🙂
+🤩
+ON THIS PAGE
+Introduction
+Key Features
+Implementation Overview
+Prerequisites
+Related Documentation
+
+Download as PDF
+

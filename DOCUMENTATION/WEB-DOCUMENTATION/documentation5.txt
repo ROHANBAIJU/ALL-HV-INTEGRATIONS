@@ -1,0 +1,74 @@
+Migrating to Web SDK v10.0.0
+Overview
+Starting with Web SDK v10.0.0, all image and animation assets are served from a new centralized CDN infrastructure. This change reduces the number of URLs clients need to whitelist during integration.
+
+Release Date: January 9, 2026
+
+What's Changed
+The SDK now fetches UI assets from *.edge.hyperverge.co instead of legacy CDN endpoints. This is part of HyperVerge's Non-Critical Asset Management initiative to centralize asset delivery across all products.
+
+Who Needs to Take Action
+Action required if your application implements Content Security Policy (CSP) rules.
+
+No action needed if you don't use CSP or domain whitelisting.
+
+Required CSP Update
+Add the following domain to your CSP configuration:
+
+https://*.edge.hyperverge.co
+
+Directives to Update
+img-src: For loading images
+connect-src: For fetching resources
+Example
+Content-Security-Policy: 
+  img-src 'self' https://*.edge.hyperverge.co; 
+  connect-src 'self' https://*.edge.hyperverge.co;
+
+Why Use a Wildcard
+info
+You must whitelist using the wildcard pattern (*).
+Future releases will use product-specific subdomains like:
+
+websdk.edge.hyperverge.co
+vkyc.edge.hyperverge.co
+Wildcard Whitelisting Overview:
+
+No CSP updates needed when new CDNs are added
+Reduced maintenance overhead
+Future-proof configuration
+Can't use wildcards? Contact the HyperVerge team for a list of specific URLs to whitelist.
+
+Go-Live Checklist
+Before migrating to v10.0.0:
+
+Add https://*.edge.hyperverge.co to CSP img-src and connect-src directives
+Test in your development environment
+Deploy CSP changes to production
+Upgrade to Web SDK v10.0.0
+For additional assistance or queries, please contact our support team at support@hyperverge.co.
+
+Last updated on Jan 13, 2026
+Previous
+Web SDK Changelog
+Next
+Input Fields
+Was this helpful?
+😭
+😞
+😐
+🙂
+🤩
+ON THIS PAGE
+Overview
+What's Changed
+Who Needs to Take Action
+Required CSP Update
+Directives to Update
+Example
+Why Use a Wildcard
+Go-Live Checklist
+
+Download as PDF
+
+Give
