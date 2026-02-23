@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Wifi, Plus, Trash2, ChevronDown, ChevronUp,
-  Loader2, CheckCircle, AlertTriangle, Shield, Zap
+  Loader2, CheckCircle, AlertTriangle, Shield, Zap,
+  RefreshCw, Copy, Check, Upload, ImageIcon, FileText,
 } from 'lucide-react';
 import { ApiConfig } from '@/lib/config/apiConfig';
 import {
@@ -17,7 +18,8 @@ import type { HyperKycResult } from '@/types/hyperkyc';
 
 type AppMode = 'default' | 'dynamic';
 type HealthStatus = 'unknown' | 'healthy' | 'unhealthy';
-interface CustomInput { id: string; key: string; value: string; }
+type InputType = 'text' | 'image';
+interface CustomInput { id: string; key: string; value: string; type: InputType; fileData?: string; fileName?: string; }
 const randomId = () => Math.random().toString(36).slice(2, 9);
 
 export default function Home() {
@@ -35,6 +37,18 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  // Transaction ID
+  const [transactionId, setTransactionId] = useState(() => generateTransactionId());
+  const [txnCopied, setTxnCopied] = useState(false);
+  // Env-switch toast
+  const [envToast, setEnvToast] = useState<string | null>(null);
+  const envToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showToast = (msg: string) => {
+    setEnvToast(msg);
+    if (envToastTimer.current) clearTimeout(envToastTimer.current);
+    envToastTimer.current = setTimeout(() => setEnvToast(null), 4000);
+  };
 
   const pingHealth = useCallback(async () => {
     setCheckingHealth(true);
@@ -42,30 +56,64 @@ export default function Home() {
     const result = await checkHealth();
     setHealthStatus(result.ok ? 'healthy' : 'unhealthy');
     setCheckingHealth(false);
+    return result.ok;
   }, []);
 
-  const toggleEnv = () => {
+  const toggleEnv = async () => {
+    const nextIsProd = !ApiConfig.isProd;
     ApiConfig.toggleEnvironment();
     setIsProd(ApiConfig.isProd);
-    pingHealth();
+    const ok = await pingHealth();
+    if (!ok && !nextIsProd) {
+      // DEV server unreachable — revert to PROD
+      ApiConfig.switchToProduction();
+      setIsProd(true);
+      await pingHealth();
+      showToast('⚠️ DEV server unreachable — reverted to PROD');
+    } else if (ok) {
+      showToast(nextIsProd ? '✓ Switched to PROD backend' : '✓ Switched to DEV backend');
+    }
   };
 
   useEffect(() => { pingHealth(); }, [pingHealth]);
 
-  const addInput = () => setCustomInputs(p => [...p, { id: randomId(), key: '', value: '' }]);
+  const refreshTxnId = () => {
+    setTransactionId(generateTransactionId());
+    setTxnCopied(false);
+  };
+
+  const copyTxnId = () => {
+    navigator.clipboard.writeText(transactionId).then(() => {
+      setTxnCopied(true);
+      setTimeout(() => setTxnCopied(false), 2000);
+    });
+  };
+
+  const addInput = () => setCustomInputs(p => [...p, { id: randomId(), key: '', value: '', type: 'text' }]);
   const removeInput = (id: string) => setCustomInputs(p => p.filter(i => i.id !== id));
   const updateInput = (id: string, f: 'key' | 'value', v: string) =>
     setCustomInputs(p => p.map(i => i.id === id ? { ...i, [f]: v } : i));
+  const toggleInputType = (id: string) =>
+    setCustomInputs(p => p.map(i => i.id === id ? { ...i, type: i.type === 'text' ? 'image' : 'text', value: '', fileData: undefined, fileName: undefined } : i));
+  const handleFileUpload = (id: string, file: File | null) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target?.result as string;
+      setCustomInputs(p => p.map(i => i.id === id ? { ...i, fileData: base64, fileName: file.name, value: base64 } : i));
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleLaunch = async () => {
     setErrorMsg(''); setStatusMsg(''); setLoading(true);
     try {
-      const transactionId = generateTransactionId();
       setStatusMsg('Generating session token…');
 
       const tokenRequest: TokenRequest = mode === 'default'
         ? { mode: 'default', transactionId }
         : { mode: 'dynamic', transactionId, appId: appId.trim(), appKey: appKey.trim(), workflowId: workflowId.trim() };
+
 
       const tokenData = await generateToken(tokenRequest);
       if (!tokenData.success || !tokenData.accessToken) {
@@ -76,7 +124,7 @@ export default function Home() {
 
       const inputsMap: Record<string, string> = {};
       if (mode === 'default' && manualName.trim()) inputsMap['MANUALNAME'] = manualName.trim();
-      else if (mode === 'dynamic') customInputs.forEach(({ key, value }) => { if (key.trim()) inputsMap[key.trim()] = value; });
+      else if (mode === 'dynamic') customInputs.forEach(({ key, value, fileData }) => { if (key.trim()) inputsMap[key.trim()] = fileData ?? value; });
       if (tokenData.inputs) Object.assign(inputsMap, tokenData.inputs);
 
       const config = new HyperKycConfig(tokenData.accessToken, tokenData.workflowId!, transactionId, false);
@@ -97,6 +145,12 @@ export default function Home() {
 
   return (
     <main style={{ background: 'var(--bg-primary)', minHeight: '100vh' }} className="flex flex-col items-center px-4 py-8">
+      {/* Env Toast */}
+      {envToast && (
+        <div style={{ position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, background: envToast.startsWith('⚠') ? 'rgba(210,105,30,0.95)' : 'rgba(34,197,94,0.15)', border: `1px solid ${envToast.startsWith('⚠') ? '#f97316' : 'var(--green)'}`, borderRadius: 10, padding: '10px 20px', color: envToast.startsWith('⚠') ? '#fff' : 'var(--green)', fontSize: 13, fontWeight: 600, boxShadow: '0 4px 24px rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', whiteSpace: 'nowrap' }}>
+          {envToast}
+        </div>
+      )}
       {/* Header */}
       <div className="w-full max-w-lg mb-8">
         <div className="flex items-center justify-between mb-1">
@@ -135,6 +189,20 @@ export default function Home() {
         </p>
       </div>
 
+      {/* Transaction ID row */}
+      <div className="w-full max-w-lg mb-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 2 }}>Transaction ID</p>
+          <p style={{ color: 'var(--accent-purple-light)', fontSize: 12, fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{transactionId}</p>
+        </div>
+        <button onClick={copyTxnId} title="Copy" style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: txnCopied ? 'var(--green)' : 'var(--text-muted)', fontSize: 11, flexShrink: 0 }}>
+          {txnCopied ? <Check size={12} /> : <Copy size={12} />} {txnCopied ? 'Copied' : 'Copy'}
+        </button>
+        <button onClick={refreshTxnId} title="Regenerate" style={{ background: 'var(--bg-card-hover)', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-muted)', fontSize: 11, flexShrink: 0 }}>
+          <RefreshCw size={12} /> New
+        </button>
+      </div>
+
       {/* Form Card */}
       <div className="w-full max-w-lg" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, padding: 24 }}>
         {mode === 'default' && (
@@ -169,12 +237,37 @@ export default function Home() {
               {showAdvanced && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {customInputs.map(inp => (
-                    <div key={inp.id} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                      <input type="text" placeholder="KEY" value={inp.key} onChange={e => updateInput(inp.id, 'key', e.target.value)} style={{ ...inputStyle, flex: 1, fontFamily: 'monospace', fontSize: 12 }} />
-                      <input type="text" placeholder="value" value={inp.value} onChange={e => updateInput(inp.id, 'value', e.target.value)} style={{ ...inputStyle, flex: 1.5 }} />
-                      <button onClick={() => removeInput(inp.id)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}>
-                        <Trash2 size={14} style={{ color: 'var(--red)' }} />
-                      </button>
+                    <div key={inp.id} style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '10px 12px', background: 'var(--bg-primary)', borderRadius: 8, border: '1px solid var(--border)' }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                        {/* Type toggle */}
+                        <button onClick={() => toggleInputType(inp.id)} title={inp.type === 'text' ? 'Switch to image upload' : 'Switch to text'} style={{ background: inp.type === 'image' ? 'rgba(124,58,237,0.2)' : 'var(--bg-card-hover)', border: `1px solid ${inp.type === 'image' ? 'var(--accent-purple)' : 'var(--border)'}`, borderRadius: 6, padding: '5px 7px', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                          {inp.type === 'image' ? <ImageIcon size={13} style={{ color: 'var(--accent-purple-light)' }} /> : <FileText size={13} style={{ color: 'var(--text-muted)' }} />}
+                        </button>
+                        <input type="text" placeholder="KEY" value={inp.key} onChange={e => updateInput(inp.id, 'key', e.target.value)} style={{ ...inputStyle, flex: 1, fontFamily: 'monospace', fontSize: 12 }} />
+                        <button onClick={() => removeInput(inp.id)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}>
+                          <Trash2 size={14} style={{ color: 'var(--red)' }} />
+                        </button>
+                      </div>
+                      {/* Value row */}
+                      {inp.type === 'text' ? (
+                        <input type="text" placeholder="value" value={inp.value} onChange={e => updateInput(inp.id, 'value', e.target.value)} style={{ ...inputStyle, fontSize: 13 }} />
+                      ) : (
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: 6, cursor: 'pointer' }}>
+                          <div style={{ border: '2px dashed var(--border)', borderRadius: 8, padding: '12px', textAlign: 'center', background: inp.fileData ? 'rgba(124,58,237,0.08)' : 'transparent', transition: 'background 0.2s' }}>
+                            {inp.fileData ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                                <img src={inp.fileData} alt="preview" style={{ maxHeight: 80, maxWidth: '100%', borderRadius: 6, objectFit: 'contain' }} />
+                                <span style={{ color: 'var(--accent-purple-light)', fontSize: 11, fontFamily: 'monospace' }}>{inp.fileName}</span>
+                              </div>
+                            ) : (
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: 'var(--text-muted)', fontSize: 12 }}>
+                                <Upload size={14} /> Click to upload image
+                              </div>
+                            )}
+                          </div>
+                          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={e => handleFileUpload(inp.id, e.target.files?.[0] ?? null)} />
+                        </label>
+                      )}
                     </div>
                   ))}
                   <button onClick={addInput} style={{ background: 'transparent', border: '1px dashed var(--border)', borderRadius: 7, padding: '8px 12px', color: 'var(--text-secondary)', fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
