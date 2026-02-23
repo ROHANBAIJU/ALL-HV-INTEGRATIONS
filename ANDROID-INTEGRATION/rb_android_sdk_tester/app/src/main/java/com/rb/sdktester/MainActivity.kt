@@ -80,7 +80,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        
+
+        // Restore persisted environment preference before building UI
+        val prefs = getSharedPreferences("rb_sdk_tester_prefs", MODE_PRIVATE)
+        val savedIsProduction = prefs.getBoolean("is_production", true)
+        if (savedIsProduction) EnvironmentConfig.switchToProduction()
+        else EnvironmentConfig.switchToDevelopment()
+
         // Register HyperVerge SDK launcher BEFORE setContent
         // This must be done before the activity is created
         registerHyperKycLauncher()
@@ -229,6 +235,9 @@ class MainActivity : ComponentActivity() {
                     val reachable = ApiClient.isBackendReachable()
                     if (reachable) {
                         isProduction = production
+                        // Persist the choice so it survives app restarts
+                        getSharedPreferences("rb_sdk_tester_prefs", MODE_PRIVATE)
+                            .edit().putBoolean("is_production", production).apply()
                         Log.d(TAG, "Environment switched to: ${EnvironmentConfig.environmentName}")
                         Toast.makeText(
                             this@MainActivity,
