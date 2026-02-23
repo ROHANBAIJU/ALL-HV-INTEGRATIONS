@@ -182,8 +182,8 @@ class LogsApiResult {
     List<LogsApiModule> modules = [];
 
     if (result != null) {
-      // HV Logs API returns modules as a list inside result
-      final modulesList = result['modules'] as List<dynamic>?;
+      // HV Logs API returns module results inside 'results' array
+      final modulesList = result['results'] as List<dynamic>?;
       if (modulesList != null) {
         modules = modulesList
             .map((m) => LogsApiModule.fromJson(m as Map<String, dynamic>))
@@ -193,7 +193,8 @@ class LogsApiResult {
 
     return LogsApiResult(
       success: (json['statusCode'] == 200 || json['status'] == 'success') && result != null,
-      appStatus: result?['appStatus'] as String?,
+      // HV uses 'applicationStatus' at the result level
+      appStatus: result?['applicationStatus'] as String?,
       transactionId: result?['transactionId'] as String?,
       modules: modules,
       rawResult: result,

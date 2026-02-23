@@ -656,9 +656,9 @@ class _ResultsDashboardScreenState extends State<ResultsDashboardScreen>
         if (webhook.status != null)
           _buildInfoRow('Status', webhook.status!),
         if (webhook.timestamp != null)
-          _buildInfoRow('Event Time', webhook.timestamp!),
+          _buildInfoRow('Event Time', _formatUtcString(webhook.timestamp!)),
         if (webhook.receivedAt != null)
-          _buildInfoRow('Received At', webhook.receivedAt!),
+          _buildInfoRow('Received At', _formatUtcString(webhook.receivedAt!)),
         // Show raw webhook payload
         if (webhook.rawData != null && webhook.rawData!.isNotEmpty) ...[  
           const SizedBox(height: 12),
@@ -1055,8 +1055,27 @@ class _ResultsDashboardScreenState extends State<ResultsDashboardScreen>
   }
 
   String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.year}-${dateTime.month.toString().padLeft(2, '0')}-${dateTime.day.toString().padLeft(2, '0')} '
-        '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    final local = dateTime.toLocal();
+    final date = '${local.year}-${local.month.toString().padLeft(2, '0')}-${local.day.toString().padLeft(2, '0')}';
+    final time = '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}:${local.second.toString().padLeft(2, '0')}';
+    return '$date $time';
+  }
+
+  /// Parse an ISO-8601 UTC string and display in device local time
+  String _formatUtcString(String utcString) {
+    try {
+      final dt = DateTime.parse(utcString).toLocal();
+      final date = '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+      final time = '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}:${dt.second.toString().padLeft(2, '0')}';
+      // Show offset so it's clear it's local
+      final offset = dt.timeZoneOffset;
+      final sign = offset.isNegative ? '-' : '+';
+      final hh = offset.inHours.abs().toString().padLeft(2, '0');
+      final mm = (offset.inMinutes.abs() % 60).toString().padLeft(2, '0');
+      return '$date $time $sign$hh:$mm';
+    } catch (_) {
+      return utcString; // fallback: show raw if unparseable
+    }
   }
 
   /// ═════════════════════════════════════════════════════════════════════════

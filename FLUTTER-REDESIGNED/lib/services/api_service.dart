@@ -218,8 +218,8 @@ class ApiService {
         data: {
           'transactionId': transactionId,
           if (workflowId != null) 'workflowId': workflowId,
-          'sendDebugInfo': true,
-          'sendReviewDetails': true,
+          'sendDebugInfo': 'yes',
+          'sendReviewDetails': 'yes',
         },
       );
       
