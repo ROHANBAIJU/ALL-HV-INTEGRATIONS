@@ -97,6 +97,7 @@ fun ResultsDashboardScreen(
         try {
             val resp = ApiClient.apiService.getWebhookResults(transactionId)
             if (resp.isSuccessful) webhookResult = resp.body()
+            else if (resp.code() == 404) webhookResult = WebhookQueryResponse(success = false, found = false, message = "No webhook received yet", data = null)
             else webhookError = "Backend error: ${resp.code()}"
         } catch (e: Exception) {
             webhookError = "Network error: ${e.message}"
@@ -133,6 +134,7 @@ fun ResultsDashboardScreen(
             try {
                 val resp = ApiClient.apiService.getWebhookResults(transactionId)
                 if (resp.isSuccessful) webhookResult = resp.body()
+                else if (resp.code() == 404) webhookResult = WebhookQueryResponse(success = false, found = false, message = "No webhook received yet", data = null)
                 else webhookError = "Backend error: ${resp.code()}"
             } catch (e: Exception) {
                 webhookError = "Network error: ${e.message}"
