@@ -30,6 +30,7 @@ const fs = require('fs');
 const tokenRoutes = require('./routes/tokenRoutes');
 const webhookRoutes = require('./routes/webhookRoutes');
 const fileRoutes = require('./routes/fileRoutes');
+const resultsRoutes = require('./routes/resultsRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -105,6 +106,9 @@ app.get('/', (req, res) => {
       tokenGeneration: 'POST /api/token/generate',
       webhookReceive: 'POST /api/webhook/results',
       webhookQuery: 'GET /api/webhook/results/:transactionId',
+      webhookConfig: 'GET|POST|PUT /api/webhook/config',
+      outputApi: 'POST /api/results/output',
+      logsApi: 'POST /api/results/logs',
       fileUpload: 'POST /api/files/upload',
       serverIp: 'GET /api/server-ip'
     },
@@ -161,6 +165,7 @@ app.get('/api/server-ip', async (req, res) => {
 app.use('/api/token', tokenRoutes);
 app.use('/api/webhook', webhookRoutes);
 app.use('/api/files', fileRoutes);
+app.use('/api/results', resultsRoutes);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // ERROR HANDLING

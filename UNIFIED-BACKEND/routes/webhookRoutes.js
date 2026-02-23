@@ -1,6 +1,31 @@
 const express = require('express');
 const router = express.Router();
 const webhookController = require('../controllers/webhookController');
+const resultsController = require('../controllers/resultsController');
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * WEBHOOK ROUTES
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+// ── Receiver: HyperVerge calls this when a KYC completes ───────────────────────
+// Register this URL in HV dashboard: POST /api/webhook/results
+router.post('/results', webhookController.receiveWebhook);
+
+// ── Query stored results ────────────────────────────────────────────────
+router.get('/results/:transactionId', webhookController.getResults);
+router.get('/results', webhookController.getAllResults);
+
+// ── Webhook subscription management (proxies to HV config API) ──────────
+// GET  /api/webhook/config  → fetch current subscription
+// POST /api/webhook/config  → create subscription (one-time setup)
+// PUT  /api/webhook/config  → update subscription URL/events
+router.get('/config',  resultsController.getWebhookConfig);
+router.post('/config', resultsController.createWebhookConfig);
+router.put('/config',  resultsController.updateWebhookConfig);
+
+module.exports = router;
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
