@@ -709,6 +709,7 @@ class _ResultsDashboardScreenState extends State<ResultsDashboardScreen>
           ),
         ],
       ],
+    );
   }
 
   Widget _buildModuleCard(int index, LogsApiModule module) {
