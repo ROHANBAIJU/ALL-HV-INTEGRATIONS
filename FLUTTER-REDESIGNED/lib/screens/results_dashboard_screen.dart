@@ -65,10 +65,22 @@ class _ResultsDashboardScreenState extends State<ResultsDashboardScreen>
         title: const Text('Results Dashboard'),
         backgroundColor: AppTheme.primaryPurple,
         elevation: 0,
+        actions: [
+          TextButton.icon(
+            onPressed: _handleStartNewFlow,
+            icon: const Icon(Icons.refresh_rounded, color: Colors.white, size: 18),
+            label: const Text(
+              'New Flow',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
           indicatorWeight: 3,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white60,
           tabs: const [
             Tab(
               icon: Icon(Icons.phone_android_rounded),
@@ -104,12 +116,6 @@ class _ResultsDashboardScreenState extends State<ResultsDashboardScreen>
             _buildLogsApiTab(),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _handleStartNewFlow,
-        backgroundColor: AppTheme.accentOrange,
-        icon: const Icon(Icons.refresh_rounded),
-        label: const Text('Start Another Flow'),
       ),
     );
   }
@@ -702,7 +708,7 @@ class _ResultsDashboardScreenState extends State<ResultsDashboardScreen>
                 const SizedBox(height: 6),
                 SelectableText(
                   const JsonEncoder.withIndent('  ').convert(webhook.rawData),
-                  style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 11, color: Colors.black87),
                 ),
               ],
             ),
@@ -991,6 +997,7 @@ class _ResultsDashboardScreenState extends State<ResultsDashboardScreen>
                 style: const TextStyle(
                   fontFamily: 'monospace',
                   fontSize: 12,
+                  color: Colors.black87,
                 ),
               ),
             ),

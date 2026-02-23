@@ -8,7 +8,7 @@ class ApiConfig {
   // ═══════════════════════════════════════════════════════════════════════════
   
   /// Switch between local and production backend
-  static bool _useProduction = false;
+  static bool _useProduction = true;
   
   /// Local backend URL
   /// - Android Emulator: 10.0.2.2
