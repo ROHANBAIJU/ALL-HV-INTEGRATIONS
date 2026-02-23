@@ -45,10 +45,11 @@ class _ResultsDashboardScreenState extends State<ResultsDashboardScreen>
       _hasCalledOutputsApi = true;
       final provider = context.read<KycProvider>();
       await Future.delayed(const Duration(milliseconds: 500));
-      // Fire both in parallel
+      // Output API: call immediately after SDK completes
+      // Webhook: poll to check if HV has sent an event yet
       await Future.wait([
         provider.fetchOutputApiResults(),
-        provider.fetchLogsApiResults(),
+        provider.fetchWebhookResults(),
       ]);
     }
   }
@@ -371,116 +372,343 @@ class _ResultsDashboardScreenState extends State<ResultsDashboardScreen>
   }
 
   /// ═════════════════════════════════════════════════════════════════════════
-  /// LOGS API TAB
+  /// LOGS API TAB  (Webhook listener + conditional Logs API call)
   /// ═════════════════════════════════════════════════════════════════════════
 
   Widget _buildLogsApiTab() {
     return Consumer<KycProvider>(
       builder: (context, provider, _) {
-        if (provider.loading && provider.logsApiResult == null) {
-          return _buildLoadingState('Calling Logs API...');
-        }
-
-        final result = provider.logsApiResult;
-
-        if (result == null) {
-          return _buildEmptyState(
-            icon: Icons.list_alt_rounded,
-            title: 'No Logs Data',
-            message: 'Logs API result will appear here',
-            action: ElevatedButton.icon(
-              onPressed: () => provider.fetchLogsApiResults(),
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Call Logs API'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryPurple,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-            ),
-          );
-        }
-
-        if (!result.success) {
-          return _buildEmptyState(
-            icon: Icons.info_outline_rounded,
-            title: 'Logs Not Available',
-            message: result.message ?? result.error ?? 'Logs become available after webhook is received',
-            action: ElevatedButton.icon(
-              onPressed: () => provider.fetchLogsApiResults(),
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Retry'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.accentOrange,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              ),
-            ),
-          );
-        }
+        final webhook = provider.webhookResult;
+        final logsResult = provider.logsApiResult;
+        final webhookReceived = webhook != null;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Summary card
-              _buildInfoCard(
-                title: 'Application Summary',
-                icon: Icons.summarize_rounded,
-                children: [
-                  _buildInfoRow('Transaction ID', result.transactionId ?? 'N/A'),
-                  _buildInfoRow('App Status', result.appStatus ?? 'Unknown'),
-                  _buildInfoRow('Modules Run', '${result.modules.length}'),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Module cards
-              if (result.modules.isEmpty)
-                Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Text(
-                      'No module data returned',
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
-                  ),
-                )
-              else
-                ...result.modules.asMap().entries.map((entry) {
-                  final idx = entry.key;
-                  final module = entry.value;
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _buildModuleCard(idx + 1, module),
-                  );
-                }),
-              const SizedBox(height: 8),
-              // Full raw JSON
-              if (result.rawResult != null) ...[
-                _buildJsonCard('Full Logs API Response', result.rawResult!),
-              ],
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
-                onPressed: () => provider.fetchLogsApiResults(),
-                icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Refresh'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.primaryPurple,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              // ── SECTION 1: Webhook Listener ──────────────────────────────
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header row
+                      Row(
+                        children: [
+                          Icon(Icons.sensors_rounded,
+                              color: webhookReceived ? AppTheme.successGreen : Colors.orange),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Webhook Listener',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                          ),
+                          // Refresh button
+                          if (provider.loading)
+                            const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          else
+                            IconButton(
+                              icon: const Icon(Icons.refresh_rounded),
+                              tooltip: 'Refresh',
+                              color: AppTheme.primaryPurple,
+                              onPressed: () => provider.fetchWebhookResults(),
+                            ),
+                          // Clear button
+                          IconButton(
+                            icon: const Icon(Icons.clear_all_rounded),
+                            tooltip: 'Clear',
+                            color: Colors.grey,
+                            onPressed: webhookReceived
+                                ? () => provider.clearWebhookData()
+                                : null,
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 24),
+                      // Status indicator
+                      if (!webhookReceived)
+                        _buildWebhookWaitingTile()
+                      else
+                        _buildWebhookReceivedTile(webhook),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+
+              const SizedBox(height: 20),
+
+              // ── SECTION 2: Call Logs API button ──────────────────────────
+              AnimatedOpacity(
+                opacity: webhookReceived ? 1.0 : 0.45,
+                duration: const Duration(milliseconds: 300),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Explanatory note when disabled
+                    if (!webhookReceived)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          children: [
+                            Icon(Icons.lock_clock_rounded,
+                                size: 16, color: Colors.grey.shade500),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Logs API unlocks once the webhook event is received',
+                                style: TextStyle(
+                                    fontSize: 12, color: Colors.grey.shade500),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ElevatedButton.icon(
+                      onPressed: (webhookReceived && !provider.loading)
+                          ? () => provider.fetchLogsApiResults()
+                          : null,
+                      icon: provider.loading && logsResult == null
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Icon(Icons.list_alt_rounded),
+                      label: Text(
+                        provider.loading && logsResult == null
+                            ? 'Fetching Logs...'
+                            : logsResult != null
+                                ? 'Refresh Logs API'
+                                : 'Call Logs API',
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryPurple,
+                        foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.grey.shade300,
+                        disabledForegroundColor: Colors.grey.shade500,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        elevation: webhookReceived ? 4 : 0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // ── SECTION 3: Logs results (shown after button is pressed) ──
+              if (logsResult != null) ...[  
+                const SizedBox(height: 24),
+                if (!logsResult.success)
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline_rounded,
+                              color: Colors.red),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              logsResult.message ??
+                                  logsResult.error ??
+                                  'Logs API returned an error',
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else ...[  
+                  _buildInfoCard(
+                    title: 'Application Summary',
+                    icon: Icons.summarize_rounded,
+                    children: [
+                      _buildInfoRow(
+                          'Transaction ID', logsResult.transactionId ?? 'N/A'),
+                      _buildInfoRow(
+                          'App Status', logsResult.appStatus ?? 'Unknown'),
+                      _buildInfoRow(
+                          'Modules Run', '${logsResult.modules.length}'),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (logsResult.modules.isEmpty)
+                    Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Text(
+                          'No module data returned',
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                      ),
+                    )
+                  else
+                    ...logsResult.modules.asMap().entries.map((entry) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _buildModuleCard(
+                            entry.key + 1, entry.value),
+                      );
+                    }),
+                  if (logsResult.rawResult != null) ...[  
+                    const SizedBox(height: 4),
+                    _buildJsonCard(
+                        'Full Logs API Response', logsResult.rawResult!),
+                  ],
+                ],
+              ],
+
+              const SizedBox(height: 24),
             ],
           ),
         );
       },
     );
+  }
+
+  Widget _buildWebhookWaitingTile() {
+    return Row(
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: Colors.orange.shade400,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.orange.shade200,
+                blurRadius: 6,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Waiting for webhook event...',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'HyperVerge will push an event when the workflow finishes. Tap refresh to check.',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWebhookReceivedTile(WebhookResult webhook) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 12,
+              height: 12,
+              decoration: const BoxDecoration(
+                color: AppTheme.successGreen,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Event received',
+              style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.successGreen,
+                  fontSize: 15),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildInfoRow('Transaction ID', webhook.transactionId),
+        if (webhook.status != null)
+          _buildInfoRow('Status', webhook.status!),
+        if (webhook.timestamp != null)
+          _buildInfoRow('Event Time', webhook.timestamp!),
+        if (webhook.receivedAt != null)
+          _buildInfoRow('Received At', webhook.receivedAt!),
+        // Show raw webhook payload
+        if (webhook.rawData != null && webhook.rawData!.isNotEmpty) ...[  
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Raw Webhook Payload',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade700),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        Clipboard.setData(ClipboardData(
+                          text: const JsonEncoder.withIndent('  ')
+                              .convert(webhook.rawData),
+                        ));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Payload copied'),
+                              duration: Duration(seconds: 1)),
+                        );
+                      },
+                      child: Icon(Icons.copy_rounded,
+                          size: 16, color: Colors.grey.shade600),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                SelectableText(
+                  const JsonEncoder.withIndent('  ').convert(webhook.rawData),
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
   }
 
   Widget _buildModuleCard(int index, LogsApiModule module) {

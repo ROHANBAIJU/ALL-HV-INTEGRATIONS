@@ -524,6 +524,16 @@ class KycProvider extends ChangeNotifier {
     _error = null;
   }
   
+  /// Clear only webhook + logs data (keeps SDK response + output API results)
+  void clearWebhookData() {
+    _webhookResult = null;
+    _logsApiResult = null;
+    notifyListeners();
+    if (kDebugMode) {
+      print('🧹 Webhook data cleared');
+    }
+  }
+  
   void _setLoading(bool value) {
     _loading = value;
     notifyListeners();
