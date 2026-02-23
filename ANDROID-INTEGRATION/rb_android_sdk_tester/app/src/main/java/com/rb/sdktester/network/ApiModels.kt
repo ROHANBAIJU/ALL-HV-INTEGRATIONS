@@ -172,7 +172,7 @@ data class OutputApiResponse(
 data class OutputApiResult(
     @SerializedName("transactionId")
     val transactionId: String?,
-    @SerializedName("applicationStatus")
+    @SerializedName("status")
     val applicationStatus: String?,
     @SerializedName("userDetails")
     val userDetails: Map<String, Any>?,
