@@ -17,6 +17,11 @@ import type { NextConfig } from "next";
  * *.sentry.io                    — SDK's internal error reporting (Sentry)
  * *.ingest.us.sentry.io          — Sentry US ingestion endpoint
  * *.ingest.sentry.io             — Sentry EU ingestion endpoint
+ * cdn.jsdelivr.net               — dotlottie-player, qr-scanner, dynamsoft-barcode, tensorflow
+ * www.gstatic.com                — Firebase SDK (firebasejs)
+ * www.cloudflare.com             — SDK IP detection (cdn-cgi/trace)
+ * api.ipify.org                  — SDK IP detection fallback
+ * *.cloudfront.net               — SDK license key fetch (Dynamsoft)
  */
 
 // Helpers for readability
@@ -25,18 +30,23 @@ const HV_WILDCARD  = "https://*.hyperverge.co";
 const HV_EDGE      = "https://*.edge.hyperverge.co";
 const HV_CONFIG    = "https://config-cdn.hyperverge.co";
 const CDNJS        = "https://cdnjs.cloudflare.com";
+const JSDELIVR     = "https://cdn.jsdelivr.net";
+const GSTATIC      = "https://www.gstatic.com";
+const CLOUDFLARE   = "https://www.cloudflare.com";
+const IPIFY        = "https://api.ipify.org";
+const CLOUDFRONT   = "https://*.cloudfront.net";
 const SENTRY       = "https://*.sentry.io https://*.ingest.us.sentry.io https://*.ingest.sentry.io";
 const BACKEND_PROD = "https://unified-backend-for-all-sdks-d76nz9uok.vercel.app";
 const BACKEND_DEV  = "http://192.168.0.105:3000 http://localhost:3000";
 
 // Build per-directive strings
-const scriptSrc  = `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${HV_CDN} ${CDNJS} ${HV_WILDCARD}`;
-const connectSrc = `connect-src 'self' ${HV_WILDCARD} ${HV_EDGE} ${HV_CONFIG} ${CDNJS} ${SENTRY} ${BACKEND_PROD} ${BACKEND_DEV}`;
-const imgSrc     = `img-src 'self' data: blob: ${HV_WILDCARD} ${HV_EDGE} ${CDNJS}`;
+const scriptSrc  = `script-src 'self' 'unsafe-inline' 'unsafe-eval' ${HV_CDN} ${CDNJS} ${JSDELIVR} ${GSTATIC} ${HV_WILDCARD}`;
+const connectSrc = `connect-src 'self' ${HV_WILDCARD} ${HV_EDGE} ${HV_CONFIG} ${CDNJS} ${JSDELIVR} ${CLOUDFLARE} ${IPIFY} ${CLOUDFRONT} ${SENTRY} ${BACKEND_PROD} ${BACKEND_DEV}`;
+const imgSrc     = `img-src 'self' data: blob: ${HV_WILDCARD} ${HV_EDGE} ${CDNJS} ${GSTATIC}`;
 const frameSrc   = `frame-src 'self' ${HV_WILDCARD}`;
 const mediaSrc   = "media-src 'self' blob:";
-const workerSrc  = "worker-src 'self' blob:";
-const styleSrc   = `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`;
+const workerSrc  = `worker-src 'self' blob: ${JSDELIVR} ${GSTATIC}`;
+const styleSrc   = `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com ${GSTATIC}`;
 const fontSrc    = "font-src 'self' data: https://fonts.gstatic.com https://fonts.googleapis.com";
 const defaultSrc = "default-src 'self'";
 
