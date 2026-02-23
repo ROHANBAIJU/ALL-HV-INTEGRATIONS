@@ -663,6 +663,10 @@ private fun LogsApiTab(
                         ?: "Module ${index + 1}"
                     JsonCard(title = moduleName, data = module)
                 }
+                RawResponseCard(
+                    title = "Raw Logs API Response",
+                    jsonString = toJsonString(logsApiResult)
+                )
             } else if (!logsApiResult.success) {
                 ErrorCard(
                     message = logsApiResult.message ?: "Logs API returned an error",
@@ -821,6 +825,72 @@ private fun JsonCard(title: String, data: Map<String, Any>) {
 }
 
 @Composable
+private fun RawResponseCard(title: String, jsonString: String) {
+    val context = LocalContext.current
+    var expanded by remember { mutableStateOf(false) }
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = White),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Primary
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    IconButton(
+                        onClick = {
+                            val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                            cm.setPrimaryClip(ClipData.newPlainText("logs_raw_json", jsonString))
+                        },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Text("📋", style = MaterialTheme.typography.bodyLarge)
+                    }
+                    IconButton(
+                        onClick = { expanded = !expanded },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Text(
+                            text = if (expanded) "▲" else "▼",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Primary
+                        )
+                    }
+                }
+            }
+            if (expanded) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Grey100,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = jsonString,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                        color = TextPrimary,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun LoadingCard(message: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -952,5 +1022,13 @@ private fun formatJson(data: Map<String, Any>): String {
         GsonBuilder().setPrettyPrinting().create().toJson(data)
     } catch (e: Exception) {
         data.toString()
+    }
+}
+
+private fun toJsonString(obj: Any): String {
+    return try {
+        GsonBuilder().setPrettyPrinting().create().toJson(obj)
+    } catch (e: Exception) {
+        obj.toString()
     }
 }
