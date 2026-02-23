@@ -347,6 +347,11 @@ export default function ResultsDashboard() {
               </button>
             </div>
 
+            {/* Raw webhook payload */}
+            {webhookReceived && webhookData?.data && (
+              <JsonBlock data={webhookData.data} label="Raw Webhook Payload" />
+            )}
+
             {/* Call Logs API button */}
             <button
               onClick={() => fetchLogsApi(transactionId)}
