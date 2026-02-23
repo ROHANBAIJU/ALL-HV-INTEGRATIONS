@@ -39,36 +39,24 @@ const PORT = process.env.PORT || 3000;
 // ═══════════════════════════════════════════════════════════════════════════
 
 // CORS Configuration - Allow both mobile apps and web clients
+// Fully open CORS — this backend serves Android, Flutter, React Native & Web clients
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman, curl)
-    if (!origin) return callback(null, true);
-    
-    // Allow all origins in development
-    if (process.env.NODE_ENV === 'development') {
-      return callback(null, true);
-    }
-    
-    // In production, you can define allowed origins
-    const allowedOrigins = [
-      process.env.FRONTEND_URL,
-      /^http:\/\/localhost:\d+$/,
-      /^http:\/\/192\.168\.\d+\.\d+:\d+$/,
-      /^http:\/\/10\.0\.2\.2:\d+$/ // Android emulator
-    ].filter(Boolean);
-    
-    const isAllowed = allowedOrigins.some(allowed => {
-      if (typeof allowed === 'string') return origin === allowed;
-      if (allowed instanceof RegExp) return allowed.test(origin);
-      return false;
-    });
-    
-    callback(null, isAllowed || true); // Allow all for now
-  },
+  origin: true, // reflect the request origin — allows all origins with credentials
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Platform']
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Platform',
+    'x-platform', // lowercase variant (browsers send lowercase)
+  ],
+  exposedHeaders: ['Content-Length'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
 }));
+
+// Explicitly handle OPTIONS preflight for all routes
+app.options('*', cors());
 
 // Body parsing middleware
 app.use(express.json({ limit: '50mb' })); // Increased limit for base64 files
