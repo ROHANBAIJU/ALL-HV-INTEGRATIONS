@@ -38,6 +38,8 @@ class KycProvider extends ChangeNotifier {
   // Results
   SdkResponse? _sdkResponse;
   WebhookResult? _webhookResult;
+  OutputApiResult? _outputApiResult;
+  LogsApiResult? _logsApiResult;
   
   // Error handling
   String? _error;
@@ -60,11 +62,13 @@ class KycProvider extends ChangeNotifier {
   List<WorkflowInput> get inputs => _inputs;
   SdkResponse? get sdkResponse => _sdkResponse;
   WebhookResult? get webhookResult => _webhookResult;
+  OutputApiResult? get outputApiResult => _outputApiResult;
+  LogsApiResult? get logsApiResult => _logsApiResult;
   String? get error => _error;
   bool get loading => _loading;
   bool get hasTransactionId => _transactionId != null && _transactionId!.isNotEmpty;
   bool get canLaunchSDK => hasTransactionId && _accessToken != null;
-  bool get hasResults => _sdkResponse != null || _webhookResult != null;
+  bool get hasResults => _sdkResponse != null || _webhookResult != null || _outputApiResult != null || _logsApiResult != null;
   
   /// ═════════════════════════════════════════════════════════════════════════
   /// MODE SELECTION
@@ -332,6 +336,87 @@ class KycProvider extends ChangeNotifier {
   }
   
   /// ═════════════════════════════════════════════════════════════════════════
+  /// FETCH OUTPUT API RESULTS
+  /// ═════════════════════════════════════════════════════════════════════════
+  
+  Future<bool> fetchOutputApiResults() async {
+    if (_transactionId == null) {
+      _setError('No transaction ID available');
+      return false;
+    }
+    
+    _setLoading(true);
+    notifyListeners();
+    
+    try {
+      final result = await _apiService.getOutputApiResults(
+        transactionId: _transactionId!,
+        workflowId: _workflowId.isNotEmpty ? _workflowId : null,
+      );
+      
+      _outputApiResult = result;
+      
+      if (kDebugMode) {
+        print('✅ Output API Result: ${result.status}');
+      }
+      
+      _setLoading(false);
+      notifyListeners();
+      return result.success;
+    } catch (e) {
+      _outputApiResult = OutputApiResult(
+        success: false,
+        error: 'EXCEPTION',
+        message: e.toString(),
+      );
+      _setLoading(false);
+      notifyListeners();
+      return false;
+    }
+  }
+  
+  /// ═════════════════════════════════════════════════════════════════════════
+  /// FETCH LOGS API RESULTS
+  /// ═════════════════════════════════════════════════════════════════════════
+  
+  Future<bool> fetchLogsApiResults() async {
+    if (_transactionId == null) {
+      _setError('No transaction ID available');
+      return false;
+    }
+    
+    _setLoading(true);
+    notifyListeners();
+    
+    try {
+      final result = await _apiService.getLogsApiResults(
+        transactionId: _transactionId!,
+        workflowId: _workflowId.isNotEmpty ? _workflowId : null,
+      );
+      
+      _logsApiResult = result;
+      
+      if (kDebugMode) {
+        print('✅ Logs API Result: ${result.appStatus}, modules: ${result.modules.length}');
+      }
+      
+      _setLoading(false);
+      notifyListeners();
+      return result.success;
+    } catch (e) {
+      _logsApiResult = LogsApiResult(
+        success: false,
+        modules: [],
+        error: 'EXCEPTION',
+        message: e.toString(),
+      );
+      _setLoading(false);
+      notifyListeners();
+      return false;
+    }
+  }
+  
+  /// ═════════════════════════════════════════════════════════════════════════
   /// RESET & UTILITY
   /// ═════════════════════════════════════════════════════════════════════════
   
@@ -434,6 +519,8 @@ class KycProvider extends ChangeNotifier {
   void _clearResults() {
     _sdkResponse = null;
     _webhookResult = null;
+    _outputApiResult = null;
+    _logsApiResult = null;
     _error = null;
   }
   

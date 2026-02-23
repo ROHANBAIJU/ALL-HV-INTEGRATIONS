@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../config/app_theme.dart';
 import '../providers/kyc_provider.dart';
+import '../models/webhook_models.dart';
 import '../widgets/app_logo.dart';
 
 /// ═══════════════════════════════════════════════════════════════════════════
@@ -44,7 +45,11 @@ class _ResultsDashboardScreenState extends State<ResultsDashboardScreen>
       _hasCalledOutputsApi = true;
       final provider = context.read<KycProvider>();
       await Future.delayed(const Duration(milliseconds: 500));
-      await provider.fetchWebhookResults();
+      // Fire both in parallel
+      await Future.wait([
+        provider.fetchOutputApiResults(),
+        provider.fetchLogsApiResults(),
+      ]);
     }
   }
 
@@ -70,11 +75,11 @@ class _ResultsDashboardScreenState extends State<ResultsDashboardScreen>
             ),
             Tab(
               icon: Icon(Icons.api_rounded),
-              text: 'Outputs API',
+              text: 'Output API',
             ),
             Tab(
-              icon: Icon(Icons.webhook_rounded),
-              text: 'Webhooks',
+              icon: Icon(Icons.list_alt_rounded),
+              text: 'Logs API',
             ),
           ],
         ),
@@ -94,8 +99,8 @@ class _ResultsDashboardScreenState extends State<ResultsDashboardScreen>
           controller: _tabController,
           children: [
             _buildSdkResponseTab(),
-            _buildOutputsApiTab(),
-            _buildWebhooksTab(),
+            _buildOutputApiTab(),
+            _buildLogsApiTab(),
           ],
         ),
       ),
@@ -169,29 +174,47 @@ class _ResultsDashboardScreenState extends State<ResultsDashboardScreen>
   }
 
   /// ═════════════════════════════════════════════════════════════════════════
-  /// OUTPUTS API TAB
+  /// OUTPUT API TAB
   /// ═════════════════════════════════════════════════════════════════════════
 
-  Widget _buildOutputsApiTab() {
+  Widget _buildOutputApiTab() {
     return Consumer<KycProvider>(
       builder: (context, provider, _) {
-        if (provider.loading) {
-          return _buildLoadingState('Fetching webhook results...');
+        if (provider.loading && provider.outputApiResult == null) {
+          return _buildLoadingState('Calling Output API...');
         }
 
-        final webhookResult = provider.webhookResult;
+        final result = provider.outputApiResult;
 
-        if (webhookResult == null) {
+        if (result == null) {
           return _buildEmptyState(
             icon: Icons.api_rounded,
-            title: 'No Results Yet',
-            message: 'Webhook results will appear here once available',
+            title: 'No Output Data',
+            message: 'Output API result will appear here',
             action: ElevatedButton.icon(
-              onPressed: () => provider.fetchWebhookResults(),
+              onPressed: () => provider.fetchOutputApiResults(),
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Retry Fetch'),
+              label: const Text('Call Output API'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryPurple,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+            ),
+          );
+        }
+
+        if (!result.success) {
+          return _buildEmptyState(
+            icon: Icons.error_outline_rounded,
+            title: 'Output API Failed',
+            message: result.message ?? result.error ?? 'Unknown error',
+            action: ElevatedButton.icon(
+              onPressed: () => provider.fetchOutputApiResults(),
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.errorRed,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
@@ -204,29 +227,53 @@ class _ResultsDashboardScreenState extends State<ResultsDashboardScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Status badge
+              _buildOutputStatusCard(result.status),
+              const SizedBox(height: 16),
+              // Core info
               _buildInfoCard(
-                title: 'Webhook Information',
-                icon: Icons.webhook_rounded,
+                title: 'Transaction',
+                icon: Icons.receipt_long_rounded,
                 children: [
-                  _buildInfoRow('Transaction ID', webhookResult.transactionId),
-                  if (webhookResult.workflowId != null)
-                    _buildInfoRow('Workflow ID', webhookResult.workflowId!),
-                  if (webhookResult.status != null)
-                    _buildInfoRow('Status', webhookResult.status!),
-                  if (webhookResult.timestamp != null)
-                    _buildInfoRow('Timestamp', webhookResult.timestamp!),
-                  if (webhookResult.receivedAt != null)
-                    _buildInfoRow('Received At', webhookResult.receivedAt!),
+                  _buildInfoRow('Transaction ID', result.transactionId ?? 'N/A'),
+                  _buildInfoRow('Workflow ID', result.workflowId ?? 'N/A'),
+                  _buildInfoRow('Status', result.status ?? 'Unknown'),
                 ],
               ),
-              if (webhookResult.result != null && webhookResult.result!.isNotEmpty) ...[
+              // User details
+              if (result.userDetails != null && result.userDetails!.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                _buildJsonCard('Result Data', webhookResult.result!),
+                _buildJsonCard('User Details', result.userDetails!),
               ],
-              if (webhookResult.rawData != null && webhookResult.rawData!.isNotEmpty) ...[
+              // Debug info
+              if (result.debugInfo != null && result.debugInfo!.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                _buildJsonCard('Raw Webhook Data', webhookResult.rawData!),
+                _buildJsonCard('Debug Info', result.debugInfo!),
               ],
+              // Review details
+              if (result.reviewDetails != null && result.reviewDetails!.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                _buildJsonCard('Review Details', result.reviewDetails!),
+              ],
+              // Full raw JSON
+              if (result.rawResult != null) ...[
+                const SizedBox(height: 16),
+                _buildJsonCard('Full Output API Response', result.rawResult!),
+              ],
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () => provider.fetchOutputApiResults(),
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Refresh'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.primaryPurple,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
             ],
           ),
         );
@@ -234,149 +281,293 @@ class _ResultsDashboardScreenState extends State<ResultsDashboardScreen>
     );
   }
 
+  Widget _buildOutputStatusCard(String? status) {
+    Color color;
+    IconData icon;
+    String label;
+
+    switch (status?.toLowerCase()) {
+      case 'auto_approved':
+      case 'manually_approved':
+        color = AppTheme.successGreen;
+        icon = Icons.check_circle_rounded;
+        label = status!;
+        break;
+      case 'auto_declined':
+      case 'manually_declined':
+        color = AppTheme.errorRed;
+        icon = Icons.cancel_rounded;
+        label = status!;
+        break;
+      case 'needs_review':
+        color = AppTheme.warningAmber;
+        icon = Icons.pending_rounded;
+        label = 'Needs Review';
+        break;
+      case 'user_cancelled':
+        color = Colors.grey;
+        icon = Icons.do_disturb_rounded;
+        label = 'User Cancelled';
+        break;
+      case 'error':
+        color = AppTheme.errorRed;
+        icon = Icons.error_rounded;
+        label = 'Error';
+        break;
+      default:
+        color = AppTheme.primaryPurple;
+        icon = Icons.info_rounded;
+        label = status ?? 'Unknown';
+    }
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [color.withOpacity(0.12), Colors.white],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+              child: Icon(icon, color: Colors.white, size: 28),
+            ),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Application Status',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// ═════════════════════════════════════════════════════════════════════════
-  /// WEBHOOKS TAB
+  /// LOGS API TAB
   /// ═════════════════════════════════════════════════════════════════════════
 
-  Widget _buildWebhooksTab() {
+  Widget _buildLogsApiTab() {
     return Consumer<KycProvider>(
       builder: (context, provider, _) {
+        if (provider.loading && provider.logsApiResult == null) {
+          return _buildLoadingState('Calling Logs API...');
+        }
+
+        final result = provider.logsApiResult;
+
+        if (result == null) {
+          return _buildEmptyState(
+            icon: Icons.list_alt_rounded,
+            title: 'No Logs Data',
+            message: 'Logs API result will appear here',
+            action: ElevatedButton.icon(
+              onPressed: () => provider.fetchLogsApiResults(),
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Call Logs API'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryPurple,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+            ),
+          );
+        }
+
+        if (!result.success) {
+          return _buildEmptyState(
+            icon: Icons.info_outline_rounded,
+            title: 'Logs Not Available',
+            message: result.message ?? result.error ?? 'Logs become available after webhook is received',
+            action: ElevatedButton.icon(
+              onPressed: () => provider.fetchLogsApiResults(),
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.accentOrange,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+            ),
+          );
+        }
+
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Summary card
               _buildInfoCard(
-                title: 'Webhook Listener',
-                icon: Icons.sensors_rounded,
-                color: AppTheme.successGreen,
+                title: 'Application Summary',
+                icon: Icons.summarize_rounded,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 12,
-                        height: 12,
-                        decoration: const BoxDecoration(
-                          color: AppTheme.successGreen,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'Listening for finish_transaction event...',
-                        style: TextStyle(fontWeight: FontWeight.w500),
-                      ),
-                    ],
-                  ),
+                  _buildInfoRow('Transaction ID', result.transactionId ?? 'N/A'),
+                  _buildInfoRow('App Status', result.appStatus ?? 'Unknown'),
+                  _buildInfoRow('Modules Run', '${result.modules.length}'),
                 ],
               ),
               const SizedBox(height: 16),
-              Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.info_outline_rounded,
-                            color: AppTheme.primaryPurple,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'How it works',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      _buildStepItem(
-                        step: '1',
-                        text: 'SDK sends finish_transaction event to backend',
-                      ),
-                      const SizedBox(height: 8),
-                      _buildStepItem(
-                        step: '2',
-                        text: 'Backend webhook endpoint receives the event',
-                      ),
-                      const SizedBox(height: 8),
-                      _buildStepItem(
-                        step: '3',
-                        text: 'Event is stored in server memory',
-                      ),
-                      const SizedBox(height: 8),
-                      _buildStepItem(
-                        step: '4',
-                        text: 'Click button below to fetch stored results',
-                      ),
-                    ],
+              // Module cards
+              if (result.modules.isEmpty)
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      'No module data returned',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: provider.loading
-                    ? null
-                    : () => provider.fetchWebhookResults(),
-                icon: provider.loading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.cloud_download_rounded),
-                label: Text(
-                  provider.loading ? 'Calling API...' : 'Call Results API',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryPurple,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                )
+              else
+                ...result.modules.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final module = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _buildModuleCard(idx + 1, module),
+                  );
+                }),
+              const SizedBox(height: 8),
+              // Full raw JSON
+              if (result.rawResult != null) ...[
+                _buildJsonCard('Full Logs API Response', result.rawResult!),
+              ],
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () => provider.fetchLogsApiResults(),
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Refresh'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.primaryPurple,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  elevation: 4,
                 ),
               ),
-              if (provider.webhookResult != null) ...[
-                const SizedBox(height: 24),
-                _buildInfoCard(
-                  title: 'Latest Result',
-                  icon: Icons.check_circle_outline_rounded,
-                  color: AppTheme.successGreen,
-                  children: [
-                    _buildInfoRow(
-                      'Transaction ID',
-                      provider.webhookResult!.transactionId,
-                    ),
-                    if (provider.webhookResult!.status != null)
-                      _buildInfoRow('Status', provider.webhookResult!.status!),
-                    if (provider.webhookResult!.timestamp != null)
-                      _buildInfoRow('Timestamp', provider.webhookResult!.timestamp!),
-                  ],
-                ),
-              ],
+              const SizedBox(height: 16),
             ],
           ),
         );
       },
     );
+  }
+
+  Widget _buildModuleCard(int index, LogsApiModule module) {
+    final statusColor = _moduleStatusColor(module.status);
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ExpansionTile(
+        leading: CircleAvatar(
+          backgroundColor: AppTheme.primaryPurple.withOpacity(0.15),
+          child: Text(
+            '$index',
+            style: TextStyle(
+              color: AppTheme.primaryPurple,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        title: Text(
+          module.moduleName,
+          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+        ),
+        subtitle: Row(
+          children: [
+            if (module.status != null) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: statusColor.withOpacity(0.4)),
+                ),
+                child: Text(
+                  module.status!,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+            if (module.attempts != null)
+              Text(
+                '${module.attempts} attempt${module.attempts! > 1 ? 's' : ''}',
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+              ),
+          ],
+        ),
+        children: [
+          if (module.details != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: SelectableText(
+                  const JsonEncoder.withIndent('  ').convert(module.details),
+                  style: const TextStyle(fontFamily: 'monospace', fontSize: 11),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Color _moduleStatusColor(String? status) {
+    switch (status?.toLowerCase()) {
+      case 'pass':
+      case 'approved':
+        return AppTheme.successGreen;
+      case 'fail':
+      case 'rejected':
+      case 'declined':
+        return AppTheme.errorRed;
+      case 'skipped':
+      case 'not_attempted':
+        return Colors.grey;
+      default:
+        return AppTheme.primaryPurple;
+    }
   }
 
   /// ═════════════════════════════════════════════════════════════════════════
@@ -580,40 +771,6 @@ class _ResultsDashboardScreenState extends State<ResultsDashboardScreen>
     );
   }
 
-  Widget _buildStepItem({required String step, required String text}) {
-    return Row(
-      children: [
-        Container(
-          width: 28,
-          height: 28,
-          decoration: BoxDecoration(
-            color: AppTheme.primaryPurple,
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              step,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              color: Colors.grey.shade700,
-              fontSize: 14,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildEmptyState({
     required IconData icon,

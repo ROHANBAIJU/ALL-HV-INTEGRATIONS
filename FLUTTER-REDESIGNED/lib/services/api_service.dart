@@ -205,6 +205,93 @@ class ApiService {
   }
   
   /// ═════════════════════════════════════════════════════════════════════════
+  /// OUTPUT API RESULTS
+  /// ═════════════════════════════════════════════════════════════════════════
+  
+  Future<OutputApiResult> getOutputApiResults({
+    required String transactionId,
+    String? workflowId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiConfig.outputApi,
+        data: {
+          'transactionId': transactionId,
+          if (workflowId != null) 'workflowId': workflowId,
+          'sendDebugInfo': true,
+          'sendReviewDetails': true,
+        },
+      );
+      
+      if (response.statusCode == 200) {
+        return OutputApiResult.fromJson(response.data as Map<String, dynamic>);
+      } else {
+        return OutputApiResult(
+          success: false,
+          error: 'HTTP ${response.statusCode}',
+          message: response.statusMessage ?? 'Unknown error',
+        );
+      }
+    } on DioException catch (e) {
+      return OutputApiResult(
+        success: false,
+        error: e.type.toString(),
+        message: e.message ?? 'Network error',
+      );
+    } catch (e) {
+      return OutputApiResult(
+        success: false,
+        error: 'EXCEPTION',
+        message: e.toString(),
+      );
+    }
+  }
+  
+  /// ═════════════════════════════════════════════════════════════════════════
+  /// LOGS API RESULTS
+  /// ═════════════════════════════════════════════════════════════════════════
+  
+  Future<LogsApiResult> getLogsApiResults({
+    required String transactionId,
+    String? workflowId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiConfig.logsApi,
+        data: {
+          'transactionId': transactionId,
+          if (workflowId != null) 'workflowId': workflowId,
+        },
+      );
+      
+      if (response.statusCode == 200) {
+        return LogsApiResult.fromJson(response.data as Map<String, dynamic>);
+      } else {
+        return LogsApiResult(
+          success: false,
+          modules: [],
+          error: 'HTTP ${response.statusCode}',
+          message: response.statusMessage ?? 'Unknown error',
+        );
+      }
+    } on DioException catch (e) {
+      return LogsApiResult(
+        success: false,
+        modules: [],
+        error: e.type.toString(),
+        message: e.message ?? 'Network error',
+      );
+    } catch (e) {
+      return LogsApiResult(
+        success: false,
+        modules: [],
+        error: 'EXCEPTION',
+        message: e.toString(),
+      );
+    }
+  }
+  
+  /// ═════════════════════════════════════════════════════════════════════════
   /// FILE UPLOAD
   /// ═════════════════════════════════════════════════════════════════════════
   
