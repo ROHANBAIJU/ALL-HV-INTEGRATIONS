@@ -28,7 +28,7 @@ object EnvironmentConfig {
     // =========================================================================
 
     /** true = Production, false = Development */
-    var isProduction: Boolean = false
+    var isProduction: Boolean = true
         private set
 
     // =========================================================================

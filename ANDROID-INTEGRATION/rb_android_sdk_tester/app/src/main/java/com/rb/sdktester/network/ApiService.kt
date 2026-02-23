@@ -91,4 +91,24 @@ interface ApiService {
     suspend fun getWebhookResults(
         @retrofit2.http.Path("transactionId") transactionId: String
     ): Response<WebhookQueryResponse>
+
+    /**
+     * Fetch Output API results from HyperVerge via backend proxy.
+     * POST /api/results/output
+     *
+     * sendDebugInfo and sendReviewDetails must be the string "yes" (not boolean true).
+     */
+    @POST("api/results/output")
+    suspend fun getOutputApiResults(
+        @Body request: OutputApiRequest
+    ): Response<OutputApiResponse>
+
+    /**
+     * Fetch Logs API results from HyperVerge via backend proxy.
+     * POST /api/results/logs
+     */
+    @POST("api/results/logs")
+    suspend fun getLogsApiResults(
+        @Body request: LogsApiRequest
+    ): Response<LogsApiResponse>
 }

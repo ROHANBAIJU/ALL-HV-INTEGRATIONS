@@ -134,6 +134,97 @@ data class WebhookQueryResponse(
     val data: WebhookResult?
 )
 
+// ============================================================================
+// OUTPUT API MODELS
+// ============================================================================
+
+/**
+ * Request body for POST /api/results/output
+ * sendDebugInfo and sendReviewDetails must be the string "yes" (not boolean).
+ */
+data class OutputApiRequest(
+    @SerializedName("transactionId")
+    val transactionId: String,
+    @SerializedName("sendDebugInfo")
+    val sendDebugInfo: String = "yes",
+    @SerializedName("sendReviewDetails")
+    val sendReviewDetails: String = "yes"
+)
+
+/**
+ * Top-level response from POST /api/results/output
+ */
+data class OutputApiResponse(
+    @SerializedName("success")
+    val success: Boolean,
+    @SerializedName("message")
+    val message: String?,
+    @SerializedName("transactionId")
+    val transactionId: String?,
+    @SerializedName("result")
+    val result: OutputApiResult?
+)
+
+/**
+ * Inner result object from Output API response.
+ * Uses Map<String, Any>? for nested objects whose structure varies per flow.
+ */
+data class OutputApiResult(
+    @SerializedName("transactionId")
+    val transactionId: String?,
+    @SerializedName("applicationStatus")
+    val applicationStatus: String?,
+    @SerializedName("userDetails")
+    val userDetails: Map<String, Any>?,
+    @SerializedName("debugInfo")
+    val debugInfo: Map<String, Any>?,
+    @SerializedName("reviewDetails")
+    val reviewDetails: Map<String, Any>?
+)
+
+// ============================================================================
+// LOGS API MODELS
+// ============================================================================
+
+/**
+ * Request body for POST /api/results/logs
+ */
+data class LogsApiRequest(
+    @SerializedName("transactionId")
+    val transactionId: String
+)
+
+/**
+ * Top-level response from POST /api/results/logs
+ */
+data class LogsApiResponse(
+    @SerializedName("success")
+    val success: Boolean,
+    @SerializedName("message")
+    val message: String?,
+    @SerializedName("transactionId")
+    val transactionId: String?,
+    @SerializedName("result")
+    val result: LogsApiResult?
+)
+
+/**
+ * Inner result object from Logs API response.
+ * "results" is the array of KYC module results.
+ */
+data class LogsApiResult(
+    @SerializedName("transactionId")
+    val transactionId: String?,
+    @SerializedName("applicationStatus")
+    val applicationStatus: String?,
+    @SerializedName("results")
+    val results: List<Map<String, Any>>?
+)
+
+// ============================================================================
+// TOKEN ERROR MODEL
+// ============================================================================
+
 /**
  * Error response model from token generation API
  */

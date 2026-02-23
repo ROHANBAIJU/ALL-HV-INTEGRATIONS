@@ -12,7 +12,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -20,21 +22,28 @@ import androidx.compose.ui.unit.sp
 import com.google.gson.GsonBuilder
 import com.rb.sdktester.SdkResult
 import com.rb.sdktester.network.ApiClient
+import com.rb.sdktester.network.LogsApiRequest
+import com.rb.sdktester.network.LogsApiResponse
+import com.rb.sdktester.network.OutputApiRequest
+import com.rb.sdktester.network.OutputApiResponse
 import com.rb.sdktester.network.WebhookQueryResponse
 import com.rb.sdktester.ui.theme.*
 import kotlinx.coroutines.launch
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 /**
  * Results Dashboard Screen
  *
  * 3-tab results view shown after the HyperVerge SDK workflow completes:
- *  Tab 1 — SDK Response   : raw result data returned directly by the SDK
- *  Tab 2 — Outputs API    : webhook result fetched from the backend (auto-fetched on load)
- *  Tab 3 — Webhooks       : explanation of how the webhook flow works + manual fetch button
+ *  Tab 1 — SDK Response : raw result data returned directly by the SDK
+ *  Tab 2 — Output API   : HV Output API results auto-fetched on load
+ *  Tab 3 — Logs API     : webhook listener + conditional Logs API call button
  *
- * @param sdkResult   Result returned by the HyperVerge SDK
- * @param transactionId Transaction ID used for this session
- * @param onStartNewFlow Called when the user taps "Start Another Flow"
+ * @param sdkResult       Result returned by the HyperVerge SDK
+ * @param transactionId   Transaction ID used for this session
+ * @param onStartNewFlow  Called when the user taps "New Flow"
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,24 +53,87 @@ fun ResultsDashboardScreen(
     onStartNewFlow: () -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
+    val coroutineScope = rememberCoroutineScope()
+
+    // ---- Output API state ----
+    var outputApiResult by remember { mutableStateOf<OutputApiResponse?>(null) }
+    var isLoadingOutputApi by remember { mutableStateOf(false) }
+    var outputApiError by remember { mutableStateOf<String?>(null) }
+
+    // ---- Webhook (Logs API tab) state ----
     var webhookResult by remember { mutableStateOf<WebhookQueryResponse?>(null) }
     var isLoadingWebhook by remember { mutableStateOf(false) }
     var webhookError by remember { mutableStateOf<String?>(null) }
-    val coroutineScope = rememberCoroutineScope()
+    var webhookCleared by remember { mutableStateOf(false) }
 
-    // Auto-fetch webhook results when screen opens
+    // ---- Logs API state ----
+    var logsApiResult by remember { mutableStateOf<LogsApiResponse?>(null) }
+    var isLoadingLogsApi by remember { mutableStateOf(false) }
+    var logsApiError by remember { mutableStateOf<String?>(null) }
+
+    // Auto-fetch Output API + webhook on mount
     LaunchedEffect(transactionId) {
-        if (transactionId != null) {
-            kotlinx.coroutines.delay(600) // brief delay so SDK result settles
+        if (transactionId == null) return@LaunchedEffect
+        kotlinx.coroutines.delay(400)
+
+        // Output API
+        isLoadingOutputApi = true
+        outputApiError = null
+        try {
+            val resp = ApiClient.apiService.getOutputApiResults(
+                OutputApiRequest(transactionId = transactionId)
+            )
+            if (resp.isSuccessful) outputApiResult = resp.body()
+            else outputApiError = "Output API error: ${resp.code()}"
+        } catch (e: Exception) {
+            outputApiError = "Network error: ${e.message}"
+        } finally {
+            isLoadingOutputApi = false
+        }
+
+        // Webhook (for Logs API tab)
+        isLoadingWebhook = true
+        webhookError = null
+        try {
+            val resp = ApiClient.apiService.getWebhookResults(transactionId)
+            if (resp.isSuccessful) webhookResult = resp.body()
+            else webhookError = "Backend error: ${resp.code()}"
+        } catch (e: Exception) {
+            webhookError = "Network error: ${e.message}"
+        } finally {
+            isLoadingWebhook = false
+        }
+    }
+
+    fun refreshOutputApi() {
+        if (transactionId == null || isLoadingOutputApi) return
+        coroutineScope.launch {
+            isLoadingOutputApi = true
+            outputApiError = null
+            try {
+                val resp = ApiClient.apiService.getOutputApiResults(
+                    OutputApiRequest(transactionId = transactionId)
+                )
+                if (resp.isSuccessful) outputApiResult = resp.body()
+                else outputApiError = "Output API error: ${resp.code()}"
+            } catch (e: Exception) {
+                outputApiError = "Network error: ${e.message}"
+            } finally {
+                isLoadingOutputApi = false
+            }
+        }
+    }
+
+    fun refreshWebhook() {
+        if (transactionId == null || isLoadingWebhook) return
+        coroutineScope.launch {
             isLoadingWebhook = true
             webhookError = null
+            webhookCleared = false
             try {
-                val response = ApiClient.apiService.getWebhookResults(transactionId)
-                if (response.isSuccessful) {
-                    webhookResult = response.body()
-                } else {
-                    webhookError = "Backend error: ${response.code()}"
-                }
+                val resp = ApiClient.apiService.getWebhookResults(transactionId)
+                if (resp.isSuccessful) webhookResult = resp.body()
+                else webhookError = "Backend error: ${resp.code()}"
             } catch (e: Exception) {
                 webhookError = "Network error: ${e.message}"
             } finally {
@@ -70,22 +142,21 @@ fun ResultsDashboardScreen(
         }
     }
 
-    fun fetchWebhookManually() {
-        if (transactionId == null || isLoadingWebhook) return
+    fun callLogsApi() {
+        if (transactionId == null || isLoadingLogsApi) return
         coroutineScope.launch {
-            isLoadingWebhook = true
-            webhookError = null
+            isLoadingLogsApi = true
+            logsApiError = null
             try {
-                val response = ApiClient.apiService.getWebhookResults(transactionId)
-                if (response.isSuccessful) {
-                    webhookResult = response.body()
-                } else {
-                    webhookError = "Backend error: ${response.code()}"
-                }
+                val resp = ApiClient.apiService.getLogsApiResults(
+                    LogsApiRequest(transactionId = transactionId)
+                )
+                if (resp.isSuccessful) logsApiResult = resp.body()
+                else logsApiError = "Logs API error: ${resp.code()}"
             } catch (e: Exception) {
-                webhookError = "Network error: ${e.message}"
+                logsApiError = "Network error: ${e.message}"
             } finally {
-                isLoadingWebhook = false
+                isLoadingLogsApi = false
             }
         }
     }
@@ -100,9 +171,19 @@ fun ResultsDashboardScreen(
                             fontWeight = FontWeight.Bold
                         )
                     },
+                    actions = {
+                        TextButton(onClick = onStartNewFlow) {
+                            Text(
+                                text = "New Flow",
+                                color = White,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                         containerColor = Primary,
-                        titleContentColor = White
+                        titleContentColor = White,
+                        actionIconContentColor = White
                     )
                 )
 
@@ -115,6 +196,8 @@ fun ResultsDashboardScreen(
                     Tab(
                         selected = selectedTab == 0,
                         onClick = { selectedTab = 0 },
+                        selectedContentColor = White,
+                        unselectedContentColor = White.copy(alpha = 0.7f),
                         text = {
                             Text(
                                 text = "SDK Response",
@@ -126,9 +209,11 @@ fun ResultsDashboardScreen(
                     Tab(
                         selected = selectedTab == 1,
                         onClick = { selectedTab = 1 },
+                        selectedContentColor = White,
+                        unselectedContentColor = White.copy(alpha = 0.7f),
                         text = {
                             Text(
-                                text = "Outputs API",
+                                text = "Output API",
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -137,9 +222,11 @@ fun ResultsDashboardScreen(
                     Tab(
                         selected = selectedTab == 2,
                         onClick = { selectedTab = 2 },
+                        selectedContentColor = White,
+                        unselectedContentColor = White.copy(alpha = 0.7f),
                         text = {
                             Text(
-                                text = "Webhooks",
+                                text = "Logs API",
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -147,20 +234,6 @@ fun ResultsDashboardScreen(
                     )
                 }
             }
-        },
-        floatingActionButton = {
-            ExtendedFloatingActionButton(
-                onClick = onStartNewFlow,
-                containerColor = Warning,
-                contentColor = White,
-                icon = { Text("🔄", fontSize = 18.sp) },
-                text = {
-                    Text(
-                        text = "Start Another Flow",
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            )
         }
     ) { paddingValues ->
         Box(
@@ -171,17 +244,28 @@ fun ResultsDashboardScreen(
         ) {
             when (selectedTab) {
                 0 -> SdkResponseTab(sdkResult = sdkResult)
-                1 -> OutputsApiTab(
-                    isLoading = isLoadingWebhook,
-                    webhookResult = webhookResult,
-                    webhookError = webhookError,
-                    onRetry = ::fetchWebhookManually
+                1 -> OutputApiTab(
+                    isLoading = isLoadingOutputApi,
+                    result = outputApiResult,
+                    error = outputApiError,
+                    onRetry = ::refreshOutputApi
                 )
-                2 -> WebhooksTab(
-                    isLoading = isLoadingWebhook,
+                2 -> LogsApiTab(
+                    isLoadingWebhook = isLoadingWebhook,
                     webhookResult = webhookResult,
                     webhookError = webhookError,
-                    onFetch = ::fetchWebhookManually
+                    webhookCleared = webhookCleared,
+                    onRefreshWebhook = ::refreshWebhook,
+                    onClearWebhook = {
+                        webhookCleared = true
+                        webhookResult = null
+                        logsApiResult = null
+                        logsApiError = null
+                    },
+                    isLoadingLogsApi = isLoadingLogsApi,
+                    logsApiResult = logsApiResult,
+                    logsApiError = logsApiError,
+                    onCallLogsApi = ::callLogsApi
                 )
             }
         }
@@ -286,19 +370,19 @@ private fun SdkResponseTab(sdkResult: SdkResult) {
         if (sdkResult.details.isNotEmpty()) rawOutputMap["details"] = sdkResult.details
         CopyableJsonCard(title = "Raw SDK Output", data = rawOutputMap)
 
-        Spacer(modifier = Modifier.height(80.dp)) // FAB clearance
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
 // =============================================================================
-// TAB 2 — OUTPUTS API
+// TAB 2 — OUTPUT API
 // =============================================================================
 
 @Composable
-private fun OutputsApiTab(
+private fun OutputApiTab(
     isLoading: Boolean,
-    webhookResult: WebhookQueryResponse?,
-    webhookError: String?,
+    result: OutputApiResponse?,
+    error: String?,
     onRetry: () -> Unit
 ) {
     Column(
@@ -308,52 +392,107 @@ private fun OutputsApiTab(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        if (isLoading) {
-            LoadingCard("Fetching outputs from backend...")
-        } else if (webhookError != null) {
-            ErrorCard(message = webhookError, onRetry = onRetry)
-        } else if (webhookResult == null || webhookResult.found == false || webhookResult.data == null) {
-            EmptyStateCard(
-                emoji = "📡",
-                title = "No Outputs Yet",
-                message = "Webhook results will appear here once HyperVerge fires the finish_transaction event to the backend.",
+        when {
+            isLoading -> LoadingCard("Fetching Output API results...")
+            error != null -> ErrorCard(message = error, onRetry = onRetry)
+            result == null -> LoadingCard("Fetching Output API results...")
+            !result.success -> ErrorCard(
+                message = result.message ?: "Output API returned an error",
                 onRetry = onRetry
             )
-        } else {
-            val data = webhookResult.data
+            result.result == null -> EmptyStateCard(
+                emoji = "📭",
+                title = "No Output Data",
+                message = "Output API returned success but no result data was found.",
+                onRetry = onRetry
+            )
+            else -> {
+                val data = result.result
+                val appStatus = data.applicationStatus ?: "unknown"
+                val statusColor = when (appStatus.lowercase()) {
+                    "auto_approved" -> Success
+                    "auto_declined" -> Error
+                    "needs_review" -> Warning
+                    else -> Neutral
+                }
+                val statusEmoji = when (appStatus.lowercase()) {
+                    "auto_approved" -> "✅"
+                    "auto_declined" -> "❌"
+                    "needs_review" -> "🔍"
+                    else -> "ℹ️"
+                }
 
-            DashboardCard(title = "Webhook Information") {
-                InfoRow("Transaction ID", data.transactionId)
-                if (data.workflowId != null) InfoRow("Workflow ID", data.workflowId)
-                if (data.status != null) InfoRow("Status", data.status)
-                if (data.timestamp != null) InfoRow("Timestamp", data.timestamp)
-                if (data.receivedAt != null) InfoRow("Received At", data.receivedAt)
-            }
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = statusColor.copy(alpha = 0.1f)
+                    ),
+                    elevation = CardDefaults.cardElevation(0.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(20.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text(text = statusEmoji, fontSize = 36.sp)
+                        Column {
+                            Text(
+                                text = appStatus.replace("_", " ").uppercase(),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = statusColor
+                            )
+                            Text(
+                                text = "Output API result",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextSecondary
+                            )
+                        }
+                    }
+                }
 
-            if (!data.result.isNullOrEmpty()) {
-                JsonCard(title = "Result Data", data = data.result)
-            }
+                DashboardCard(title = "Transaction Details") {
+                    InfoRow("Transaction ID", data.transactionId ?: result.transactionId ?: "N/A")
+                    InfoRow("Application Status", appStatus)
+                }
 
-            if (!data.rawData.isNullOrEmpty()) {
-                JsonCard(title = "Raw Webhook Data", data = data.rawData)
+                if (!data.userDetails.isNullOrEmpty()) {
+                    JsonCard(title = "User Details", data = data.userDetails)
+                }
+                if (!data.debugInfo.isNullOrEmpty()) {
+                    JsonCard(title = "Debug Info", data = data.debugInfo)
+                }
+                if (!data.reviewDetails.isNullOrEmpty()) {
+                    JsonCard(title = "Review Details", data = data.reviewDetails)
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(80.dp))
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
 // =============================================================================
-// TAB 3 — WEBHOOKS
+// TAB 3 — LOGS API
 // =============================================================================
 
 @Composable
-private fun WebhooksTab(
-    isLoading: Boolean,
+private fun LogsApiTab(
+    isLoadingWebhook: Boolean,
     webhookResult: WebhookQueryResponse?,
     webhookError: String?,
-    onFetch: () -> Unit
+    webhookCleared: Boolean,
+    onRefreshWebhook: () -> Unit,
+    onClearWebhook: () -> Unit,
+    isLoadingLogsApi: Boolean,
+    logsApiResult: LogsApiResponse?,
+    logsApiError: String?,
+    onCallLogsApi: () -> Unit
 ) {
+    val webhookReceived = webhookResult?.found == true && webhookResult.data != null
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -361,86 +500,176 @@ private fun WebhooksTab(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Status indicator
-        DashboardCard(title = "Webhook Listener", headerColor = Success) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .background(Success, shape = RoundedCornerShape(6.dp))
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "Listening for finish_transaction event...",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-        }
-
-        // How it works steps
+        // Webhook Listener Card
         Card(
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = White),
             elevation = CardDefaults.cardElevation(2.dp)
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
-                Text(
-                    text = "ℹ️  How it works",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Primary
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                StepItem("1", "SDK sends finish_transaction event to backend")
-                Spacer(modifier = Modifier.height(8.dp))
-                StepItem("2", "Backend webhook endpoint receives the event")
-                Spacer(modifier = Modifier.height(8.dp))
-                StepItem("3", "Event is stored in server memory")
-                Spacer(modifier = Modifier.height(8.dp))
-                StepItem("4", "Tap button below to fetch stored results")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        val dotColor = if (webhookReceived) Success else Warning
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .background(dotColor, shape = RoundedCornerShape(6.dp))
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "Webhook Listener",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Primary
+                        )
+                    }
+                    if (webhookReceived) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            TextButton(onClick = onRefreshWebhook, enabled = !isLoadingWebhook) {
+                                Text("Refresh", color = Info, fontSize = 12.sp)
+                            }
+                            TextButton(onClick = onClearWebhook) {
+                                Text("Clear", color = Error, fontSize = 12.sp)
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                when {
+                    isLoadingWebhook -> {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = Primary
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Checking for webhook event...",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextSecondary
+                            )
+                        }
+                    }
+                    webhookReceived -> {
+                        val data = webhookResult!!.data!!
+                        Text(
+                            text = "✅  Webhook event received",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = Success
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        data.transactionId.let { InfoRow("Transaction ID", it) }
+                        if (data.status != null) InfoRow("Status", data.status)
+                        if (data.timestamp != null) InfoRow("Event Time", formatUtcToLocal(data.timestamp))
+                        if (data.receivedAt != null) InfoRow("Received At", formatUtcToLocal(data.receivedAt))
+                        if (!data.rawData.isNullOrEmpty()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Grey100,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = formatJson(data.rawData),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontFamily = FontFamily.Monospace,
+                                    color = TextPrimary,
+                                    modifier = Modifier.padding(12.dp)
+                                )
+                            }
+                        }
+                    }
+                    webhookError != null -> {
+                        Text(
+                            text = "⚠️  $webhookError",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Error
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(onClick = onRefreshWebhook) { Text("Retry", color = Error) }
+                    }
+                    else -> {
+                        Text(
+                            text = "⏳  Waiting for finish_transaction webhook...",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(onClick = onRefreshWebhook, enabled = !isLoadingWebhook) {
+                            Text("Check Again")
+                        }
+                    }
+                }
             }
         }
 
-        // Fetch button
+        // Call Logs API Button — enabled only after webhook received
         Button(
-            onClick = onFetch,
-            enabled = !isLoading,
+            onClick = onCallLogsApi,
+            enabled = webhookReceived && !isLoadingLogsApi,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Primary)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Primary,
+                disabledContainerColor = Primary.copy(alpha = 0.38f)
+            )
         ) {
-            if (isLoading) {
+            if (isLoadingLogsApi) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(22.dp),
                     color = White,
                     strokeWidth = 3.dp
                 )
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("Calling API...", fontWeight = FontWeight.Bold)
+                Text("Calling Logs API...", fontWeight = FontWeight.Bold, color = White)
             } else {
-                Text("☁️  Call Results API", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = if (webhookReceived) "📋  Call Logs API" else "📋  Logs API (waiting for webhook)",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (webhookReceived) White else White.copy(alpha = 0.6f)
+                )
             }
         }
 
-        // Webhook error
-        if (webhookError != null) {
-            ErrorCard(message = webhookError, onRetry = onFetch)
+        if (logsApiError != null) {
+            ErrorCard(message = logsApiError, onRetry = onCallLogsApi)
         }
 
-        // Latest result summary
-        if (webhookResult?.data != null) {
-            val data = webhookResult.data
-            DashboardCard(title = "Latest Result", headerColor = Success) {
-                InfoRow("Transaction ID", data.transactionId)
-                if (data.status != null) InfoRow("Status", data.status)
-                if (data.timestamp != null) InfoRow("Timestamp", data.timestamp)
+        if (logsApiResult != null) {
+            val lr = logsApiResult.result
+            if (lr != null) {
+                DashboardCard(title = "Logs API Summary") {
+                    InfoRow("Transaction ID", lr.transactionId ?: "N/A")
+                    InfoRow("Application Status", lr.applicationStatus ?: "N/A")
+                    InfoRow("Modules", "${lr.results?.size ?: 0} module(s)")
+                }
+                lr.results?.forEachIndexed { index, module ->
+                    val moduleName = (module["moduleId"] as? String)
+                        ?: (module["moduleName"] as? String)
+                        ?: "Module ${index + 1}"
+                    JsonCard(title = moduleName, data = module)
+                }
+            } else if (!logsApiResult.success) {
+                ErrorCard(
+                    message = logsApiResult.message ?: "Logs API returned an error",
+                    onRetry = onCallLogsApi
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(80.dp))
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
@@ -544,7 +773,7 @@ private fun CopyableJsonCard(title: String, data: Map<String, Any>) {
                 Text(
                     text = jsonString,
                     style = MaterialTheme.typography.bodySmall,
-                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                    fontFamily = FontFamily.Monospace,
                     color = TextPrimary,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -578,7 +807,7 @@ private fun JsonCard(title: String, data: Map<String, Any>) {
                 Text(
                     text = formatJson(data),
                     style = MaterialTheme.typography.bodySmall,
-                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                    fontFamily = FontFamily.Monospace,
                     color = TextPrimary,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -688,29 +917,23 @@ private fun EmptyStateCard(
     }
 }
 
-@Composable
-private fun StepItem(step: String, text: String) {
-    Row(verticalAlignment = Alignment.Top) {
-        Box(
-            modifier = Modifier
-                .size(28.dp)
-                .background(Primary.copy(alpha = 0.15f), shape = RoundedCornerShape(14.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = step,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color = Primary
-            )
-        }
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
-            modifier = Modifier.padding(top = 4.dp)
-        )
+// =============================================================================
+// UTILITIES
+// =============================================================================
+
+/**
+ * Parses an ISO-8601 UTC timestamp string and returns a local-time string
+ * with the UTC offset, e.g. "2025-01-15 22:04:17 +05:30"
+ */
+private fun formatUtcToLocal(utcString: String): String {
+    return try {
+        val odt = OffsetDateTime.parse(utcString)
+        val localZone = ZoneId.systemDefault()
+        val localOdt = odt.atZoneSameInstant(localZone).toOffsetDateTime()
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss xxx")
+        localOdt.format(formatter)
+    } catch (e: Exception) {
+        utcString
     }
 }
 
