@@ -139,6 +139,8 @@ data class WebhookQueryResponse(
 /**
  * Request body for POST /api/results/output
  * sendDebugInfo and sendReviewDetails must be the string "yes" (not boolean).
+ * appId / appKey are optional — only required for dynamic-mode transactions;
+ * the backend falls back to DEFAULT_APP_ID/KEY if omitted.
  */
 data class OutputApiRequest(
     @SerializedName("transactionId")
@@ -146,7 +148,11 @@ data class OutputApiRequest(
     @SerializedName("sendDebugInfo")
     val sendDebugInfo: String = "yes",
     @SerializedName("sendReviewDetails")
-    val sendReviewDetails: String = "yes"
+    val sendReviewDetails: String = "yes",
+    @SerializedName("appId")
+    val appId: String? = null,
+    @SerializedName("appKey")
+    val appKey: String? = null
 )
 
 /**
@@ -186,10 +192,16 @@ data class OutputApiResult(
 
 /**
  * Request body for POST /api/results/logs
+ * appId / appKey are optional — only required for dynamic-mode transactions;
+ * the backend falls back to DEFAULT_APP_ID/KEY if omitted.
  */
 data class LogsApiRequest(
     @SerializedName("transactionId")
-    val transactionId: String
+    val transactionId: String,
+    @SerializedName("appId")
+    val appId: String? = null,
+    @SerializedName("appKey")
+    val appKey: String? = null
 )
 
 /**
@@ -217,6 +229,63 @@ data class LogsApiResult(
     val applicationStatus: String?,
     @SerializedName("results")
     val results: List<Map<String, Any>>?
+)
+
+// ============================================================================
+// WEBHOOK SUBSCRIPTION CONFIG MODELS
+// ============================================================================
+
+/**
+ * Request body for POST /api/webhook/config (create) and PUT /api/webhook/config (update).
+ *
+ * webhookUrl  — the URL HyperVerge will POST events to (auto-derived from backend URL)
+ * events      — one or more of:
+ *               "FINISH_TRANSACTION_WEBHOOK"
+ *               "MANUAL_REVIEW_STATUS_UPDATE"
+ *               "INTERMEDIATE_TRANSACTION_WEBHOOK"
+ * appId/appKey — optional; backend falls back to DEFAULT_APP_ID/KEY if omitted.
+ */
+data class WebhookConfigRequest(
+    @SerializedName("webhookUrl")
+    val webhookUrl: String,
+    @SerializedName("events")
+    val events: List<String>,
+    @SerializedName("appId")
+    val appId: String? = null,
+    @SerializedName("appKey")
+    val appKey: String? = null
+)
+
+/**
+ * Inner result object inside the HyperVerge webhook config response.
+ */
+data class WebhookConfigResult(
+    @SerializedName("appId")
+    val appId: String?,
+    @SerializedName("webhookUrl")
+    val webhookUrl: String?,
+    @SerializedName("created_at")
+    val createdAt: String?,
+    @SerializedName("updated_at")
+    val updatedAt: String?,
+    @SerializedName("id")
+    val id: String?
+)
+
+/**
+ * Top-level response for POST/PUT /api/webhook/config.
+ * HyperVerge wraps the result in { statusCode, status, result } —
+ * our backend forwards it with an added `success` flag.
+ */
+data class WebhookConfigResponse(
+    @SerializedName("success")
+    val success: Boolean,
+    @SerializedName("status")
+    val status: String?,
+    @SerializedName("statusCode")
+    val statusCode: Int?,
+    @SerializedName("result")
+    val result: WebhookConfigResult?
 )
 
 // ============================================================================

@@ -21,6 +21,7 @@
  */
 
 const axios = require('axios');
+const { getTransactionCredentials } = require('./tokenController');
 
 // In-memory store — replace with DB in production
 const verificationResults = new Map();
@@ -31,8 +32,11 @@ const HV_OUTPUT_URL = `https://${HV_REGION}.idv.hyperverge.co/v1/output`;
 const HV_LOGS_URL   = `https://${HV_REGION}.idv.hyperverge.co/v1/link-kyc/results`;
 
 const fetchOutputApi = async (transactionId) => {
-  const appId  = process.env.DEFAULT_APP_ID;
-  const appKey = process.env.DEFAULT_APP_KEY;
+  // Prefer dynamic credentials stored at token-generation time; fall back to env
+  const stored = getTransactionCredentials(transactionId);
+  const appId  = stored?.appId  || process.env.DEFAULT_APP_ID;
+  const appKey = stored?.appKey || process.env.DEFAULT_APP_KEY;
+  if (stored) console.log(`   🔑 Output API: using DYNAMIC credentials for ${transactionId}`);
   if (!appId || !appKey) return null;
   try {
     const r = await axios.post(HV_OUTPUT_URL,
@@ -47,8 +51,11 @@ const fetchOutputApi = async (transactionId) => {
 };
 
 const fetchLogsApi = async (transactionId) => {
-  const appId  = process.env.DEFAULT_APP_ID;
-  const appKey = process.env.DEFAULT_APP_KEY;
+  // Prefer dynamic credentials stored at token-generation time; fall back to env
+  const stored = getTransactionCredentials(transactionId);
+  const appId  = stored?.appId  || process.env.DEFAULT_APP_ID;
+  const appKey = stored?.appKey || process.env.DEFAULT_APP_KEY;
+  if (stored) console.log(`   🔑 Logs API: using DYNAMIC credentials for ${transactionId}`);
   if (!appId || !appKey) return null;
   try {
     const r = await axios.post(HV_LOGS_URL,

@@ -4,6 +4,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 
 /**
  * Retrofit API Service Interface
@@ -111,4 +112,31 @@ interface ApiService {
     suspend fun getLogsApiResults(
         @Body request: LogsApiRequest
     ): Response<LogsApiResponse>
+
+    /**
+     * Create a new webhook event subscription for a HyperVerge account.
+     * POST /api/webhook/config
+     *
+     * Supported events:
+     *   FINISH_TRANSACTION_WEBHOOK       — SDK/link completes a transaction
+     *   MANUAL_REVIEW_STATUS_UPDATE      — Agent approves/declines in dashboard
+     *   INTERMEDIATE_TRANSACTION_WEBHOOK — Transaction submitted, processing
+     *
+     * One-time setup per account. Use updateWebhookConfig for subsequent changes.
+     */
+    @POST("api/webhook/config")
+    suspend fun createWebhookConfig(
+        @Body request: WebhookConfigRequest
+    ): Response<WebhookConfigResponse>
+
+    /**
+     * Update an existing webhook event subscription.
+     * PUT /api/webhook/config
+     *
+     * Use after a subscription already exists (createWebhookConfig was called before).
+     */
+    @PUT("api/webhook/config")
+    suspend fun updateWebhookConfig(
+        @Body request: WebhookConfigRequest
+    ): Response<WebhookConfigResponse>
 }

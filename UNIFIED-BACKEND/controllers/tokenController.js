@@ -1,5 +1,17 @@
 const axios = require('axios');
 
+// ─── Per-transaction credential cache ────────────────────────────────────────
+// Keyed by transactionId → { appId, appKey }
+// Only populated for dynamic-mode tokens so the webhook handler can use the
+// correct credentials when auto-enriching Output + Logs API results.
+const transactionCredentials = new Map();
+
+/**
+ * Look up the credentials used to create a token for a given transaction.
+ * Returns undefined if the transaction was default-mode (use env vars instead).
+ */
+const getTransactionCredentials = (transactionId) => transactionCredentials.get(transactionId);
+
 /**
  * ═══════════════════════════════════════════════════════════════════════════
  * TOKEN GENERATION CONTROLLER
@@ -143,8 +155,12 @@ const generateToken = async (req, res) => {
       finalAppKey = appKey.trim();
       finalWorkflowId = workflowId.trim();
 
+      // Persist credentials so the webhook handler can use the right account
+      transactionCredentials.set(transactionId.trim(), { appId: finalAppId, appKey: finalAppKey });
+
       console.log(`   ✓ App ID: ${finalAppId}`);
       console.log(`   ✓ Workflow: ${finalWorkflowId}`);
+      console.log(`   🔑 Credentials cached for txn: ${transactionId.trim()}`);
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -272,5 +288,6 @@ const generateToken = async (req, res) => {
 };
 
 module.exports = {
-  generateToken
+  generateToken,
+  getTransactionCredentials,
 };

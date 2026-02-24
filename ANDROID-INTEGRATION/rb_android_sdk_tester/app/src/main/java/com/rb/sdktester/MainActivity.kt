@@ -19,6 +19,7 @@ import com.rb.sdktester.models.WorkflowInput
 import com.rb.sdktester.network.ApiClient
 import com.rb.sdktester.network.EnvironmentConfig
 import com.rb.sdktester.network.TokenRequest
+import com.rb.sdktester.network.WebhookConfigRequest
 import com.rb.sdktester.ui.screens.*
 import com.rb.sdktester.ui.theme.RbAndroidSdkTesterTheme
 import kotlinx.coroutines.launch
@@ -201,6 +202,13 @@ class MainActivity : ComponentActivity() {
         
         // Coroutine scope for API calls
         val coroutineScope = rememberCoroutineScope()
+
+        // Webhook event subscription state (Dynamic mode only)
+        var webhookEvents by remember { mutableStateOf(emptySet<String>()) }
+        var isSubscribingWebhook by remember { mutableStateOf(false) }
+        var webhookSubscriptionStatus by remember { mutableStateOf<String?>(null) }
+        // Auto-derived receiver URL — always points to the currently active backend
+        val webhookUrl = "${EnvironmentConfig.baseUrl.trimEnd('/')}/api/webhook/results"
         
         // ========================================================================
         // SDK RESULT HANDLER
@@ -431,7 +439,54 @@ class MainActivity : ComponentActivity() {
         fun resetToInput() {
             currentScreen = Screen.Input
             sdkResult = null
+            webhookSubscriptionStatus = null
             // Note: We keep transactionId so user can regenerate if needed
+        }
+
+        /**
+         * Subscribe to HyperVerge webhook events for the current dynamic account.
+         *
+         * @param create true  → POST (first-time creation)
+         *               false → PUT  (update existing subscription)
+         */
+        fun subscribeWebhook(create: Boolean) {
+            if (appMode != AppMode.DYNAMIC) return
+            if (appId.isBlank() || appKey.isBlank()) {
+                Toast.makeText(this@MainActivity, "Enter App ID and App Key first", Toast.LENGTH_SHORT).show()
+                return
+            }
+            if (webhookEvents.isEmpty()) {
+                Toast.makeText(this@MainActivity, "Select at least one event", Toast.LENGTH_SHORT).show()
+                return
+            }
+            isSubscribingWebhook = true
+            webhookSubscriptionStatus = null
+            coroutineScope.launch {
+                try {
+                    val request = WebhookConfigRequest(
+                        webhookUrl = webhookUrl,
+                        events = webhookEvents.toList(),
+                        appId = appId,
+                        appKey = appKey
+                    )
+                    val resp = if (create)
+                        ApiClient.apiService.createWebhookConfig(request)
+                    else
+                        ApiClient.apiService.updateWebhookConfig(request)
+
+                    webhookSubscriptionStatus = if (resp.isSuccessful && resp.body()?.success == true) {
+                        val action = if (create) "created" else "updated"
+                        "✅ Webhook subscription $action successfully"
+                    } else {
+                        val errBody = resp.errorBody()?.string() ?: "HTTP ${resp.code()}"
+                        "❌ Failed: $errBody"
+                    }
+                } catch (e: Exception) {
+                    webhookSubscriptionStatus = "❌ Error: ${e.message}"
+                } finally {
+                    isSubscribingWebhook = false
+                }
+            }
         }
         
         // ========================================================================
@@ -463,6 +518,14 @@ class MainActivity : ComponentActivity() {
                         transactionId = transactionId,
                         isGeneratingToken = isGeneratingToken,
                         onGenerateTransactionId = { generateTransactionId() },
+                        // Webhook event subscription
+                        webhookEvents = webhookEvents,
+                        onWebhookEventsChange = { webhookEvents = it },
+                        isSubscribingWebhook = isSubscribingWebhook,
+                        webhookSubscriptionStatus = webhookSubscriptionStatus,
+                        webhookUrl = webhookUrl,
+                        onCreateWebhookSubscription = { subscribeWebhook(create = true) },
+                        onUpdateWebhookSubscription = { subscribeWebhook(create = false) },
                         onInitializeWorkflow = { initializeWorkflow() }
                     )
                 }
@@ -473,6 +536,10 @@ class MainActivity : ComponentActivity() {
                         ResultsDashboardScreen(
                             sdkResult = result,
                             transactionId = result.transactionId ?: transactionId,
+                            // Forward credentials for dynamic mode so Output API / Logs API
+                            // calls reach HyperVerge with the correct account credentials.
+                            appId = if (appMode == AppMode.DYNAMIC) appId.ifBlank { null } else null,
+                            appKey = if (appMode == AppMode.DYNAMIC) appKey.ifBlank { null } else null,
                             onStartNewFlow = { resetToInput() }
                         )
                     }

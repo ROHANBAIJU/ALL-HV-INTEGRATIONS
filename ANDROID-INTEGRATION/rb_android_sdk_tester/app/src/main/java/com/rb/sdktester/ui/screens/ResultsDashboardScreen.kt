@@ -43,6 +43,8 @@ import java.util.TimeZone
  *
  * @param sdkResult       Result returned by the HyperVerge SDK
  * @param transactionId   Transaction ID used for this session
+ * @param appId           HyperVerge App ID (null for default-mode; passed for dynamic-mode)
+ * @param appKey          HyperVerge App Key (null for default-mode; passed for dynamic-mode)
  * @param onStartNewFlow  Called when the user taps "New Flow"
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,6 +52,8 @@ import java.util.TimeZone
 fun ResultsDashboardScreen(
     sdkResult: SdkResult,
     transactionId: String?,
+    appId: String? = null,
+    appKey: String? = null,
     onStartNewFlow: () -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
@@ -81,7 +85,11 @@ fun ResultsDashboardScreen(
         outputApiError = null
         try {
             val resp = ApiClient.apiService.getOutputApiResults(
-                OutputApiRequest(transactionId = transactionId)
+                OutputApiRequest(
+                    transactionId = transactionId,
+                    appId = appId,
+                    appKey = appKey
+                )
             )
             if (resp.isSuccessful) outputApiResult = resp.body()
             else outputApiError = "Output API error: ${resp.code()}"
@@ -113,7 +121,11 @@ fun ResultsDashboardScreen(
             outputApiError = null
             try {
                 val resp = ApiClient.apiService.getOutputApiResults(
-                    OutputApiRequest(transactionId = transactionId)
+                    OutputApiRequest(
+                        transactionId = transactionId,
+                        appId = appId,
+                        appKey = appKey
+                    )
                 )
                 if (resp.isSuccessful) outputApiResult = resp.body()
                 else outputApiError = "Output API error: ${resp.code()}"
@@ -151,7 +163,11 @@ fun ResultsDashboardScreen(
             logsApiError = null
             try {
                 val resp = ApiClient.apiService.getLogsApiResults(
-                    LogsApiRequest(transactionId = transactionId)
+                    LogsApiRequest(
+                        transactionId = transactionId,
+                        appId = appId,
+                        appKey = appKey
+                    )
                 )
                 if (resp.isSuccessful) logsApiResult = resp.body()
                 else logsApiError = "Logs API error: ${resp.code()}"

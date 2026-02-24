@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -75,6 +76,14 @@ fun InputScreen(
     transactionId: String?,
     isGeneratingToken: Boolean,
     onGenerateTransactionId: () -> Unit,
+    // Webhook event subscription (Dynamic mode only)
+    webhookEvents: Set<String> = emptySet(),
+    onWebhookEventsChange: (Set<String>) -> Unit = {},
+    isSubscribingWebhook: Boolean = false,
+    webhookSubscriptionStatus: String? = null,
+    webhookUrl: String = "",
+    onCreateWebhookSubscription: () -> Unit = {},
+    onUpdateWebhookSubscription: () -> Unit = {},
     onInitializeWorkflow: () -> Unit
 ) {
     var showAppKey by remember { mutableStateOf(false) }
@@ -668,6 +677,22 @@ fun InputScreen(
             }
 
             Spacer(modifier = Modifier.height(24.dp))
+
+            // ====================================================================
+            // WEBHOOK EVENT SUBSCRIPTION SECTION (Dynamic Mode Only)
+            // ====================================================================
+
+            WebhookEventSubscriptionCard(
+                webhookEvents = webhookEvents,
+                onWebhookEventsChange = onWebhookEventsChange,
+                isSubscribingWebhook = isSubscribingWebhook,
+                webhookSubscriptionStatus = webhookSubscriptionStatus,
+                webhookUrl = webhookUrl,
+                onCreateSubscription = onCreateWebhookSubscription,
+                onUpdateSubscription = onUpdateWebhookSubscription
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
         
         // ========================================================================
@@ -833,6 +858,195 @@ fun InputScreen(
         }
         
         Spacer(modifier = Modifier.height(40.dp))
+    }
+}
+
+// =============================================================================
+// WEBHOOK EVENT SUBSCRIPTION CARD
+// =============================================================================
+
+private val WEBHOOK_EVENTS = listOf(
+    "FINISH_TRANSACTION_WEBHOOK"       to "Transaction Finished",
+    "MANUAL_REVIEW_STATUS_UPDATE"       to "Manual Review Update",
+    "INTERMEDIATE_TRANSACTION_WEBHOOK"  to "Intermediate Transaction"
+)
+
+@Composable
+private fun WebhookEventSubscriptionCard(
+    webhookEvents: Set<String>,
+    onWebhookEventsChange: (Set<String>) -> Unit,
+    isSubscribingWebhook: Boolean,
+    webhookSubscriptionStatus: String?,
+    webhookUrl: String,
+    onCreateSubscription: () -> Unit,
+    onUpdateSubscription: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+
+            // --- Title ---
+            Text(
+                text = "Webhook Event Subscription",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = TextPrimary
+            )
+            Text(
+                text = "Subscribe your HyperVerge account to receive real-time event callbacks",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextSecondary,
+                modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+            )
+
+            // --- Receiver URL (read-only info row) ---
+            if (webhookUrl.isNotBlank()) {
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = InfoBackground
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp)
+                    ) {
+                        Text(
+                            text = "Receiver URL (auto)",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = InfoDark,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = webhookUrl,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = InfoDark,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            // --- Event chips ---
+            Text(
+                text = "Events to subscribe to:",
+                style = MaterialTheme.typography.labelMedium,
+                color = TextSecondary,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            WEBHOOK_EVENTS.forEach { (eventId, label) ->
+                val selected = eventId in webhookEvents
+                FilterChip(
+                    selected = selected,
+                    onClick = {
+                        val updated = if (selected) webhookEvents - eventId else webhookEvents + eventId
+                        onWebhookEventsChange(updated)
+                    },
+                    label = {
+                        Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = eventId,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (selected) Primary else TextSecondary,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 2.dp),
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = Primary.copy(alpha = 0.12f),
+                        selectedLabelColor = Primary
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        enabled = true,
+                        selected = selected,
+                        selectedBorderColor = Primary,
+                        borderColor = Grey300
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // --- Action buttons: Create | Update ---
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onCreateSubscription,
+                    enabled = webhookEvents.isNotEmpty() && !isSubscribingWebhook,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    if (isSubscribingWebhook) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Create", style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+                Button(
+                    onClick = onUpdateSubscription,
+                    enabled = webhookEvents.isNotEmpty() && !isSubscribingWebhook,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Primary)
+                ) {
+                    if (isSubscribingWebhook) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            color = White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Update", style = MaterialTheme.typography.labelMedium)
+                    }
+                }
+            }
+
+            // --- Subscription status result ---
+            if (webhookSubscriptionStatus != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                val isSuccess = webhookSubscriptionStatus.startsWith("✅")
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = if (isSuccess) SuccessBackground else ErrorBackground
+                ) {
+                    Text(
+                        text = webhookSubscriptionStatus,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (isSuccess) SuccessDark else ErrorDark,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp)
+                    )
+                }
+            }
+
+            // Helper note
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Use \"Create\" for first-time setup, \"Update\" to change events or URL.",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextSecondary
+            )
+        }
     }
 }
 
