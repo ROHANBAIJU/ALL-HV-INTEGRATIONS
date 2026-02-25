@@ -276,6 +276,10 @@ data class WebhookConfigResult(
  * Top-level response for POST/PUT /api/webhook/config.
  * HyperVerge wraps the result in { statusCode, status, result } —
  * our backend forwards it with an added `success` flag.
+ *
+ * NOTE: POST returns result as an object (WebhookConfigResult),
+ *       PUT returns result as a number (1 = rows updated).
+ *       Using JsonElement? handles both without crashing Gson.
  */
 data class WebhookConfigResponse(
     @SerializedName("success")
@@ -285,7 +289,7 @@ data class WebhookConfigResponse(
     @SerializedName("statusCode")
     val statusCode: Int?,
     @SerializedName("result")
-    val result: WebhookConfigResult?
+    val result: com.google.gson.JsonElement?  // object (POST) or number (PUT)
 )
 
 // ============================================================================
